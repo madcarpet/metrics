@@ -25,11 +25,17 @@ func sendMetric(ms metricSource) {
 	for {
 		for k, v := range ms.GetGauge() {
 			url := fmt.Sprintf("http://localhost:8080/update/gauge/%v/%v", k, v)
-			http.Post(url, "text/plain", nil)
+			r, err := http.Post(url, "text/plain", nil)
+			if err != nil {
+				r.Body.Close()
+			}
 		}
 		for k, v := range ms.GetCounter() {
 			url := fmt.Sprintf("http://localhost:8080/update/counter/%v/%v", k, v)
-			http.Post(url, "text/plain", nil)
+			r, err := http.Post(url, "text/plain", nil)
+			if err != nil {
+				r.Body.Close()
+			}
 
 		}
 		time.Sleep(10 * time.Second)
