@@ -84,6 +84,7 @@ func TestUpdateHandeler(t *testing.T) {
 			res := rec.Result()
 			assert.Equal(t, test.want.code, res.StatusCode)
 			assert.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
+			res.Body.Close()
 
 		},
 		)
