@@ -25,15 +25,12 @@ func sendMetric(ms metricSource) {
 	for {
 		for k, v := range ms.GetGauge() {
 			url := fmt.Sprintf("http://localhost:8080/update/gauge/%v/%v", k, v)
-			r, _ := http.Post(url, "text/plain", nil)
-			fmt.Println(k, v)
-			fmt.Println("This is gauge response: ", r.StatusCode)
+			http.Post(url, "text/plain", nil)
 		}
 		for k, v := range ms.GetCounter() {
 			url := fmt.Sprintf("http://localhost:8080/update/counter/%v/%v", k, v)
-			r, _ := http.Post(url, "text/plain", nil)
-			fmt.Println(k, v)
-			fmt.Println("This is counter response: ", r.StatusCode)
+			http.Post(url, "text/plain", nil)
+
 		}
 		time.Sleep(10 * time.Second)
 	}
