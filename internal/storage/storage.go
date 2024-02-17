@@ -1,8 +1,11 @@
 package storage
 
+import "fmt"
+
 // type for storage in memory
 type MemStorage struct {
-	metrics map[string]float64
+	Gauges   map[string]float64
+	Counters map[string]int64
 }
 
 type MetricType int
@@ -11,14 +14,46 @@ type MetricType int
 func (s *MemStorage) Update(k string, v float64, t MetricType) {
 	switch t {
 	case 1:
-		s.metrics[k] = v
+		s.Gauges[k] = v
 	case 2:
-		s.metrics[k] += v
+		s.Counters[k] += int64(v)
 	}
 
 }
 
+func (s MemStorage) GetMetric(k string, t MetricType) (string, error) {
+	switch t {
+	case 1:
+		metric, ok := s.Gauges[k]
+		if !ok {
+			return "", fmt.Errorf("ERROR: %v", "No such metric")
+		}
+		return fmt.Sprint(metric), nil
+	default:
+		metric, ok := s.Counters[k]
+		if !ok {
+			return "", fmt.Errorf("ERROR: %v", "No such metric")
+		}
+		return fmt.Sprint(metric), nil
+	}
+}
+
+func (s MemStorage) GetMetricsAll() (map[string]string, error) {
+	allmetrics := make(map[string]string)
+	if len(s.Gauges) > 0 {
+		for k, v := range s.Gauges {
+			allmetrics[k] = fmt.Sprint(v)
+		}
+	}
+	if len(s.Counters) > 0 {
+		for k, v := range s.Counters {
+			allmetrics[k] = fmt.Sprint(v)
+		}
+	}
+	return allmetrics, nil
+}
+
 // Constructor for MemStorage
 func NewMemStorage() *MemStorage {
-	return &MemStorage{metrics: make(map[string]float64)}
+	return &MemStorage{Gauges: make(map[string]float64), Counters: make(map[string]int64)}
 }

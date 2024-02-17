@@ -5,11 +5,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/labstack/echo/v4"
 	"github.com/madcarpet/metrics/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateHandeler(t *testing.T) {
+func TestUpdateHandler(t *testing.T) {
 	type want struct {
 		code        int
 		contentType string
@@ -26,7 +27,7 @@ func TestUpdateHandeler(t *testing.T) {
 			method: http.MethodPost,
 			want: want{
 				code:        200,
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain; charset=UTF-8",
 			},
 		},
 		{
@@ -35,7 +36,7 @@ func TestUpdateHandeler(t *testing.T) {
 			method: http.MethodPost,
 			want: want{
 				code:        200,
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain; charset=UTF-8",
 			},
 		},
 		{
@@ -44,7 +45,7 @@ func TestUpdateHandeler(t *testing.T) {
 			method: http.MethodPost,
 			want: want{
 				code:        400,
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain; charset=UTF-8",
 			},
 		},
 		{
@@ -53,7 +54,7 @@ func TestUpdateHandeler(t *testing.T) {
 			method: http.MethodPost,
 			want: want{
 				code:        400,
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain; charset=UTF-8",
 			},
 		},
 		{
@@ -62,7 +63,7 @@ func TestUpdateHandeler(t *testing.T) {
 			method: http.MethodPost,
 			want: want{
 				code:        404,
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain; charset=UTF-8",
 			},
 		},
 		{
@@ -71,21 +72,26 @@ func TestUpdateHandeler(t *testing.T) {
 			method: http.MethodPost,
 			want: want{
 				code:        400,
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain; charset=UTF-8",
 			},
 		},
 	}
+	db := storage.NewMemStorage()
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			s := storage.NewMemStorage()
+			e := echo.New()
+			e.POST("/update/:type/:value", func(c echo.Context) error {
+				return c.String(http.StatusNotFound, "Metric name not found")
+			})
+			e.POST("/update/:type/:name/:value", func(c echo.Context) error {
+				return Update(c, db)
+			})
 			req := httptest.NewRequest(test.method, test.url, nil)
 			rec := httptest.NewRecorder()
-			Update(rec, req, s)
-			res := rec.Result()
-			assert.Equal(t, test.want.code, res.StatusCode)
-			assert.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
-			res.Body.Close()
-
+			e.ServeHTTP(rec, req)
+			defer rec.Result().Body.Close()
+			assert.Equal(t, test.want.code, rec.Code)
+			assert.Equal(t, test.want.contentType, rec.Header().Get("Content-Type"))
 		},
 		)
 	}
