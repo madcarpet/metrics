@@ -58,8 +58,17 @@ func TestUpdateHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   "Test missed metric name",
+			name:   "Test missed metric name #1",
 			url:    "http://localhost:8080/update/counter/12",
+			method: http.MethodPost,
+			want: want{
+				code:        404,
+				contentType: "text/plain; charset=UTF-8",
+			},
+		},
+		{
+			name:   "Test missed metric name #2",
+			url:    "http://localhost:8080/update/counter/",
 			method: http.MethodPost,
 			want: want{
 				code:        404,
@@ -80,7 +89,12 @@ func TestUpdateHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			e := echo.New()
+			e.POST("/update/:type/", func(c echo.Context) error {
+				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+				return c.String(http.StatusNotFound, "Metric name not found")
+			})
 			e.POST("/update/:type/:value", func(c echo.Context) error {
+				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 				return c.String(http.StatusNotFound, "Metric name not found")
 			})
 			e.POST("/update/:type/:name/:value", func(c echo.Context) error {

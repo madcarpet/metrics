@@ -17,7 +17,12 @@ func main() {
 	e.GET("/value/:type/:name", func(c echo.Context) error {
 		return handlers.Value(c, db)
 	})
+	e.POST("/update/:type/", func(c echo.Context) error {
+		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		return c.String(http.StatusNotFound, "Metric name not found")
+	})
 	e.POST("/update/:type/:value", func(c echo.Context) error {
+		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusNotFound, "Metric name not found")
 	})
 	e.POST("/update/:type/:name/:value", func(c echo.Context) error {
