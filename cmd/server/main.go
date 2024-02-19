@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/madcarpet/metrics/internal/handlers"
@@ -9,6 +11,11 @@ import (
 )
 
 func main() {
+	err := parseFlags()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	db := storage.NewMemStorage()
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error {
@@ -31,5 +38,5 @@ func main() {
 	e.Any("/*", func(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Bad request")
 	})
-	e.Logger.Fatal(e.Start("localhost:8080"))
+	e.Logger.Fatal(e.Start(serverAddress))
 }

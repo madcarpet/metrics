@@ -5,6 +5,12 @@ import (
 	"runtime"
 )
 
+type MetricSource interface {
+	Collect()
+	GetGauge() map[string]float64
+	GetCounter() map[string]int64
+}
+
 type Metrics struct {
 	Gauge   map[string]float64
 	Counter map[string]int64

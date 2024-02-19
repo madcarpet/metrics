@@ -1,6 +1,15 @@
 package storage
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
+
+type Repositories interface {
+	Update(k string, v float64, t MetricType)
+	GetMetric(k string, t MetricType) (string, error)
+	GetMetricsAll() (map[string]string, error)
+}
 
 // type for storage in memory
 type MemStorage struct {
@@ -12,12 +21,15 @@ type MetricType int
 
 // func for update key value pairs
 func (s *MemStorage) Update(k string, v float64, t MetricType) {
+	var mutex sync.Mutex
+	mutex.Lock()
 	switch t {
 	case 1:
 		s.Gauges[k] = v
 	case 2:
 		s.Counters[k] += int64(v)
 	}
+	mutex.Unlock()
 
 }
 

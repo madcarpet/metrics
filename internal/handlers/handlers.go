@@ -15,14 +15,7 @@ const (
 	counter
 )
 
-// Interface to work with MemStorage
-type Repositories interface {
-	Update(k string, v float64, t storage.MetricType)
-	GetMetric(k string, t storage.MetricType) (string, error)
-	GetMetricsAll() (map[string]string, error)
-}
-
-func Root(c echo.Context, s Repositories) error {
+func Root(c echo.Context, s storage.Repositories) error {
 	var output string
 	allmetrics, err := s.GetMetricsAll()
 	if err != nil {
@@ -38,7 +31,7 @@ func Root(c echo.Context, s Repositories) error {
 
 // Handler fot /value path
 // Should be enclosed
-func Value(c echo.Context, s Repositories) error {
+func Value(c echo.Context, s storage.Repositories) error {
 	mtype := c.Param("type")
 	mname := c.Param("name")
 	switch mtype {
@@ -62,7 +55,7 @@ func Value(c echo.Context, s Repositories) error {
 
 // Handler for /update path
 // Should be enclosed
-func Update(c echo.Context, s Repositories) error {
+func Update(c echo.Context, s storage.Repositories) error {
 	mtype := c.Param("type")
 	mname := c.Param("name")
 	mval := c.Param("value")
