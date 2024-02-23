@@ -8,6 +8,7 @@ import (
 
 var serverAddress string
 
+// function to parse args from cli or environment vars
 func parseFlags() error {
 	flag.StringVar(&serverAddress, "a", "localhost:8080", "Address server listen to")
 	flag.Parse()

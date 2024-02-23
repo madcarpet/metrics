@@ -9,6 +9,7 @@ import (
 	"github.com/madcarpet/metrics/internal/collector"
 )
 
+// function to poll metrics from runtime and collect to collector
 func updateMetric(ms collector.MetricSource, i int64) {
 	for {
 		ms.Collect()
@@ -16,6 +17,7 @@ func updateMetric(ms collector.MetricSource, i int64) {
 	}
 }
 
+// function to report metrics to remote server
 func sendMetric(ms collector.MetricSource, a string, i int64) {
 	for {
 		for k, v := range ms.GetGauge() {

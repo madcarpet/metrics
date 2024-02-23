@@ -16,8 +16,11 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	// initialize new storage
 	db := storage.NewMemStorage()
+	// initialize new echo instance
 	e := echo.New()
+	// routing
 	e.GET("/", func(c echo.Context) error {
 		return handlers.Root(c, db)
 	})
@@ -38,5 +41,6 @@ func main() {
 	e.Any("/*", func(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Bad request")
 	})
+	// start server
 	e.Logger.Fatal(e.Start(serverAddress))
 }

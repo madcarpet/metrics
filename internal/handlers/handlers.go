@@ -9,12 +9,14 @@ import (
 	"github.com/madcarpet/metrics/internal/storage"
 )
 
-// Constants gor metrics types
+// Constants for metrics types
 const (
 	gauge storage.MetricType = 1 + iota
 	counter
 )
 
+// Function fot / path
+// Should be enclosed inside echo route
 func Root(c echo.Context, s storage.Repositories) error {
 	var output string
 	allmetrics, err := s.GetMetricsAll()
@@ -29,8 +31,8 @@ func Root(c echo.Context, s storage.Repositories) error {
 
 }
 
-// Handler fot /value path
-// Should be enclosed
+// Function for /value path
+// Should be enclosed inside echo route
 func Value(c echo.Context, s storage.Repositories) error {
 	mtype := c.Param("type")
 	mname := c.Param("name")
@@ -53,8 +55,8 @@ func Value(c echo.Context, s storage.Repositories) error {
 	return c.String(http.StatusBadRequest, "Bad request")
 }
 
-// Handler for /update path
-// Should be enclosed
+// Function for /update path
+// Should be enclosed inside echo route
 func Update(c echo.Context, s storage.Repositories) error {
 	mtype := c.Param("type")
 	mname := c.Param("name")

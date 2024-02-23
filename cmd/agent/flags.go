@@ -11,6 +11,7 @@ var serverAddress string
 var reportInterval int64
 var pollInterval int64
 
+// function to parse args from cli or environment vars
 func parseFlags() error {
 	var errRprtInterval, errPollInterval error
 	flag.StringVar(&serverAddress, "a", "localhost:8080", "Server address to connect to")

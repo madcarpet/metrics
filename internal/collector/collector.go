@@ -5,22 +5,26 @@ import (
 	"runtime"
 )
 
+// interface to manage metrics source
 type MetricSource interface {
 	Collect()
 	GetGauge() map[string]float64
 	GetCounter() map[string]int64
 }
 
+// metrics type
 type Metrics struct {
 	Gauge   map[string]float64
 	Counter map[string]int64
 }
 
+// metrics constructor
 func NewMetrics() Metrics {
 	return Metrics{Gauge: make(map[string]float64), Counter: make(map[string]int64)}
 
 }
 
+// method to collect metrics
 func (m *Metrics) Collect() {
 	st := runtime.MemStats{}
 	runtime.ReadMemStats(&st)
@@ -55,10 +59,12 @@ func (m *Metrics) Collect() {
 	m.Counter["PollCount"] += 1
 }
 
+// method to get gauge type metrics
 func (m Metrics) GetGauge() map[string]float64 {
 	return m.Gauge
 }
 
+// method to get counter type metrics
 func (m Metrics) GetCounter() map[string]int64 {
 	return m.Counter
 }

@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// interface to user memstorage type
 type Repositories interface {
 	Update(k string, v float64, t MetricType)
 	GetMetric(k string, t MetricType) (string, error)
@@ -17,9 +18,10 @@ type MemStorage struct {
 	Counters map[string]int64
 }
 
+// type for identification metric type
 type MetricType int
 
-// func for update key value pairs
+// function to update key value pairs
 func (s *MemStorage) Update(k string, v float64, t MetricType) {
 	var mutex sync.Mutex
 	mutex.Lock()
@@ -33,6 +35,7 @@ func (s *MemStorage) Update(k string, v float64, t MetricType) {
 
 }
 
+// function to get metric by key and type
 func (s MemStorage) GetMetric(k string, t MetricType) (string, error) {
 	switch t {
 	case 1:
@@ -50,6 +53,7 @@ func (s MemStorage) GetMetric(k string, t MetricType) (string, error) {
 	}
 }
 
+// function to get all metrics
 func (s MemStorage) GetMetricsAll() (map[string]string, error) {
 	allmetrics := make(map[string]string)
 	if len(s.Gauges) > 0 {
@@ -65,7 +69,7 @@ func (s MemStorage) GetMetricsAll() (map[string]string, error) {
 	return allmetrics, nil
 }
 
-// Constructor for MemStorage
+// constructor for MemStorage
 func NewMemStorage() *MemStorage {
 	return &MemStorage{Gauges: make(map[string]float64), Counters: make(map[string]int64)}
 }
