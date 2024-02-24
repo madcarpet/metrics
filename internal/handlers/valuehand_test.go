@@ -93,23 +93,31 @@ func TestValueHandler(t *testing.T) {
 			},
 		},
 	}
-	db := storage.MemStorage{
-		Gauges: map[string]float64{
-			"TestGCSys":       1.114112e+06,
-			"TestAlloc":       879464,
-			"TestRandomValue": 0.8230922114274958,
-		},
-		Counters: map[string]int64{
-			"TestPollCount": 188,
-		},
+	// db := storage.MemStorage{
+	// 	Gauges: map[string]float64{
+	// 		"TestGCSys":       1.114112e+06,
+	// 		"TestAlloc":       879464,
+	// 		"TestRandomValue": 0.8230922114274958,
+	// 	},
+	// 	Counters: map[string]int64{
+	// 		"TestPollCount": 188,
+	// 	},
+	// }
+	db := storage.NewMemStorage()
+	db.Gauges = map[string]float64{
+		"TestGCSys":       1.114112e+06,
+		"TestAlloc":       879464,
+		"TestRandomValue": 0.8230922114274958,
+	}
+	db.Counters = map[string]int64{
+		"TestPollCount": 188,
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			e := echo.New()
-			e.GET("/value/:type/:name", func(c echo.Context) error {
-				return Value(c, &db)
-			})
+			h := NewHandler(db)
+			e.GET("/value/:type/:name", h.Value)
 			req := httptest.NewRequest(test.method, test.url, nil)
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)

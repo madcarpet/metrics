@@ -89,6 +89,7 @@ func TestUpdateHandler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			e := echo.New()
+			h := NewHandler(db)
 			e.POST("/update/:type/", func(c echo.Context) error {
 				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 				return c.String(http.StatusNotFound, "Metric name not found")
@@ -97,9 +98,7 @@ func TestUpdateHandler(t *testing.T) {
 				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 				return c.String(http.StatusNotFound, "Metric name not found")
 			})
-			e.POST("/update/:type/:name/:value", func(c echo.Context) error {
-				return Update(c, db)
-			})
+			e.POST("/update/:type/:name/:value", h.Update)
 			req := httptest.NewRequest(test.method, test.url, nil)
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
