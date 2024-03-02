@@ -1,4 +1,4 @@
-package http_echo
+package httpecho
 
 import (
 	"net/http"

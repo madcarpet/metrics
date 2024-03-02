@@ -2,10 +2,9 @@ package http
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
-	"time"
 
-	"github.com/labstack/echo/v4"
 	"github.com/madcarpet/metrics/internal/adapter/memstorage"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/stretchr/testify/assert"
@@ -20,18 +19,16 @@ func TestReporter(t *testing.T) {
 	for _, metric := range testMetrics {
 		db.UpdateMetric(metric)
 	}
-	e := echo.New()
-	anyHandler := func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusOK, "Metric updated")
-	}
-	e.Any("/*", anyHandler)
-	go e.Start("localhost:8080")
 
-	reporter := NewReporter("localhost:8080", db)
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("metric updated"))
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(handler))
+	defer server.Close()
+	reporter := NewReporter(server.URL[7:], db)
 	err := reporter.ReportMetrics()
 	assert.Nil(t, err)
 
-	time.Sleep(5 * time.Second)
-	e.Close()
 }

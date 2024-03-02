@@ -1,11 +1,11 @@
-package http_echo
+package httpecho
 
 import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/madcarpet/metrics/internal/entity"
-	"github.com/madcarpet/metrics/internal/handlers/http_echo/handlers"
+	"github.com/madcarpet/metrics/internal/handlers/httpecho/handlers"
 )
 
 type rootHandlerSvc interface {

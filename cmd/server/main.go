@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/madcarpet/metrics/internal/adapter/memstorage"
-	"github.com/madcarpet/metrics/internal/handlers/http_echo"
+	"github.com/madcarpet/metrics/internal/handlers/httpecho"
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
@@ -21,6 +21,6 @@ func main() {
 	valueSvc := metrics.NewGetMetricSvc(db)
 	updateSvc := metrics.NewUpdateMetricSvc(db)
 	e := echo.New()
-	http_echo.SetupRouter(e, rootSvc, valueSvc, updateSvc)
+	httpecho.SetupRouter(e, rootSvc, valueSvc, updateSvc)
 	e.Logger.Fatal(e.Start(serverAddress))
 }
