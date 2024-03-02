@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/labstack/echo/v4"
-	"github.com/madcarpet/metrics/internal/handlers"
-	"github.com/madcarpet/metrics/internal/storage"
+	"github.com/madcarpet/metrics/internal/adapter/memstorage"
+	"github.com/madcarpet/metrics/internal/handlers/http_echo"
+	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
 func main() {
@@ -16,27 +16,11 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	// initialize new storage
-	db := storage.NewMemStorage()
-	// initialize new echo instance
+	db := memstorage.NewMemStorage()
+	rootSvc := metrics.NewGetAllMetricsSvc(db)
+	valueSvc := metrics.NewGetMetricSvc(db)
+	updateSvc := metrics.NewUpdateMetricSvc(db)
 	e := echo.New()
-	// initialize handler
-	h := handlers.NewHandler(db)
-	// routing
-	e.GET("/", h.Root)
-	e.GET("/value/:type/:name", h.Value)
-	e.POST("/update/:type/", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusNotFound, "Metric name not found")
-	})
-	e.POST("/update/:type/:value", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusNotFound, "Metric name not found")
-	})
-	e.POST("/update/:type/:name/:value", h.Update)
-	e.Any("/*", func(c echo.Context) error {
-		return c.String(http.StatusBadRequest, "Bad request")
-	})
-	// start server
+	http_echo.SetupRouter(e, rootSvc, valueSvc, updateSvc)
 	e.Logger.Fatal(e.Start(serverAddress))
 }
