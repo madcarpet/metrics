@@ -34,7 +34,12 @@ func (s *MemStorage) UpdateMetric(m entity.Metric) error {
 	if len(s.metrics) > 0 {
 		for idx, metric := range s.metrics {
 			if metric.Name == m.Name && metric.Type == m.Type {
-				s.metrics[idx] = m
+				switch m.Type {
+				case entity.Counter:
+					s.metrics[idx].Value += m.Value
+				case entity.Gauge:
+					s.metrics[idx] = m
+				}
 				return nil
 			}
 		}

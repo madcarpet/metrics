@@ -23,7 +23,7 @@ func TestGetMetric(t *testing.T) {
 	getMetricSvc := NewGetMetricSvc(db)
 	for _, metric := range testMetrics {
 		m, err := getMetricSvc.GetMetric(metric.Name, metric.Type)
-		assert.Equal(t, m, metric)
+		assert.Equal(t, metric, m)
 		assert.Nil(t, err)
 	}
 	_, err := getMetricSvc.GetMetric("fakemetric", entity.Gauge)

@@ -53,23 +53,13 @@ func (c *MetricCollectorSvc) Collect(ms []string) error {
 	if err != nil {
 		return fmt.Errorf("couldn't store metric")
 	}
-	pollCountMetric, err := c.repo.GetByNameAndType("PollCount", entity.Counter)
-	if err == nil {
-		metric.Type = pollCountMetric.Type
-		metric.Name = pollCountMetric.Name
-		metric.Value = pollCountMetric.Value + 1
-		err = c.repo.UpdateMetric(metric)
-		if err != nil {
-			return fmt.Errorf("couldn't store metric")
-		}
-	} else {
-		metric.Type = entity.Counter
-		metric.Name = "PollCount"
-		metric.Value = 1
-		err = c.repo.UpdateMetric(metric)
-		if err != nil {
-			return fmt.Errorf("couldn't store metric")
-		}
+	metric.Type = entity.Counter
+	metric.Name = "PollCount"
+	metric.Value = 1
+	err = c.repo.UpdateMetric(metric)
+	if err != nil {
+		return fmt.Errorf("couldn't store metric")
 	}
+
 	return nil
 }

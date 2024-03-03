@@ -22,32 +22,32 @@ func TestCollectRunMetrics(t *testing.T) {
 
 	allocMetric, err := db.GetByNameAndType("Alloc", entity.Gauge)
 	assert.Nil(t, err)
-	assert.Equal(t, allocMetric.Name, "Alloc")
+	assert.Equal(t, "Alloc", allocMetric.Name)
 
 	freesMetric, err := db.GetByNameAndType("Frees", entity.Gauge)
 	assert.Nil(t, err)
-	assert.Equal(t, freesMetric.Name, "Frees")
+	assert.Equal(t, "Frees", freesMetric.Name)
 
 	heapMetric, err := db.GetByNameAndType("HeapAlloc", entity.Gauge)
 	assert.Nil(t, err)
-	assert.Equal(t, heapMetric.Name, "HeapAlloc")
+	assert.Equal(t, "HeapAlloc", heapMetric.Name)
 
 	gcsysMetric, err := db.GetByNameAndType("GCSys", entity.Gauge)
 	assert.Nil(t, err)
-	assert.Equal(t, gcsysMetric.Name, "GCSys")
+	assert.Equal(t, "GCSys", gcsysMetric.Name)
 
 	randomMetric, err := db.GetByNameAndType("RandomValue", entity.Gauge)
 	assert.Nil(t, err)
-	assert.Equal(t, randomMetric.Name, "RandomValue")
+	assert.Equal(t, "RandomValue", randomMetric.Name)
 
 	pollCountMetric, err := db.GetByNameAndType("PollCount", entity.Counter)
 	assert.Nil(t, err)
-	assert.Equal(t, pollCountMetric.Name, "PollCount")
-	assert.Equal(t, int(pollCountMetric.Value), 1)
+	assert.Equal(t, "PollCount", pollCountMetric.Name)
+	assert.Equal(t, 1, int(pollCountMetric.Value))
 
 	collectRunMetricsSvc.Collect(testMetrics)
 	pollCountMetric, err = db.GetByNameAndType("PollCount", entity.Counter)
 	assert.Nil(t, err)
-	assert.Equal(t, pollCountMetric.Name, "PollCount")
-	assert.Equal(t, int(pollCountMetric.Value), 2)
+	assert.Equal(t, "PollCount", pollCountMetric.Name)
+	assert.Equal(t, 2, int(pollCountMetric.Value))
 }

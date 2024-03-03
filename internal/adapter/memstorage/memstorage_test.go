@@ -29,7 +29,7 @@ func TestMemStorage(t *testing.T) {
 		{Name: "TestGauge1", Type: entity.Gauge, Value: 1.111111},
 		{Name: "TestGauge2", Type: entity.Gauge, Value: 212.921351351141},
 		{Name: "TestGauge3", Type: entity.Gauge, Value: 0},
-		{Name: "TestCounter1", Type: entity.Counter, Value: 99},
+		{Name: "TestCounter1", Type: entity.Counter, Value: 100},
 		{Name: "TestCounter2", Type: entity.Counter, Value: 991112111111},
 		{Name: "TestCounter3", Type: entity.Counter, Value: 0},
 		{Name: "TestGauge4", Type: entity.Gauge, Value: 4.44},
@@ -43,20 +43,20 @@ func TestMemStorage(t *testing.T) {
 	//Get metrics testing
 	for _, metric := range valueMetrics {
 		testMetric, _ := storage.GetByNameAndType(metric.Name, metric.Type)
-		assert.Equal(t, testMetric.Name, metric.Name)
-		assert.Equal(t, testMetric.Type, metric.Type)
-		assert.Equal(t, testMetric.Value, metric.Value)
+		assert.Equal(t, metric.Name, testMetric.Name)
+		assert.Equal(t, metric.Type, testMetric.Type)
+		assert.Equal(t, metric.Value, testMetric.Value)
 	}
 	//Update metrics
 	for _, metric := range updateMetrics {
 		storage.UpdateMetric(metric)
 	}
 	//Updated metric testing
-	for _, metric := range updateMetrics {
+	for _, metric := range resultMetrics {
 		testMetric, _ := storage.GetByNameAndType(metric.Name, metric.Type)
-		assert.Equal(t, testMetric.Name, metric.Name)
-		assert.Equal(t, testMetric.Type, metric.Type)
-		assert.Equal(t, testMetric.Value, metric.Value)
+		assert.Equal(t, metric.Name, testMetric.Name)
+		assert.Equal(t, metric.Type, testMetric.Type)
+		assert.Equal(t, metric.Value, testMetric.Value)
 	}
 
 	//Test not created metric
@@ -64,9 +64,15 @@ func TestMemStorage(t *testing.T) {
 	assert.NotNil(t, err)
 
 	//Test all metrics stored
-	assert.Equal(t, len(storage.metrics), 8)
+	assert.Equal(t, 8, len(storage.metrics))
 
 	//Test get all metrics
-	assert.Equal(t, storage.metrics, resultMetrics)
+	assert.Equal(t, resultMetrics, storage.metrics)
+
+	//Test counter summ
+	storage.UpdateMetric(entity.Metric{Name: "TestCounter4", Type: entity.Counter, Value: 4})
+	summedCounterMetric, err := storage.GetByNameAndType("TestCounter4", entity.Counter)
+	assert.Nil(t, err)
+	assert.Equal(t, float64(8), summedCounterMetric.Value)
 
 }
