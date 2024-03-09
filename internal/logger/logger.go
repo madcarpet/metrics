@@ -14,6 +14,7 @@ func Initialize(level string) error {
 	cfg := zap.NewDevelopmentConfig()
 	cfg.Level = lvl
 	cfg.DisableCaller = true
+	cfg.OutputPaths = []string{"stdout"}
 	zl, err := cfg.Build()
 	if err != nil {
 		return err
