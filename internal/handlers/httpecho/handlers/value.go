@@ -1,11 +1,13 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/madcarpet/metrics/internal/entity"
+	"github.com/madcarpet/metrics/internal/models"
 )
 
 type valueHandlerSvc interface {
@@ -17,26 +19,60 @@ type ValueHandler struct {
 }
 
 func (h *ValueHandler) Handle(c echo.Context) error {
-	mType := c.Param("type")
-	mName := c.Param("name")
-	switch mType {
-	case "gauge":
-		metric, err := h.valueSvc.GetMetric(mName, entity.Gauge)
-		if err != nil {
-			return c.String(http.StatusNotFound, "Metric name not found")
-		}
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusOK, fmt.Sprintf("%v", metric.Value))
-	case "counter":
-		metric, err := h.valueSvc.GetMetric(mName, entity.Counter)
-		if err != nil {
-			return c.String(http.StatusNotFound, "Metric name not found")
-		}
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusOK, fmt.Sprintf("%v", metric.Value))
-	}
-	return c.String(http.StatusBadRequest, "Bad request")
+	//Var for decoding request JSON
+	var reqData models.Metrics
 
+	appHeader := c.Request().Header.Get("Content-Type")
+	if appHeader != "application/json" {
+		return c.String(http.StatusBadRequest, "Bad request")
+	}
+
+	//Reading body
+	body, err := io.ReadAll(c.Request().Body)
+	defer c.Request().Body.Close()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Server error")
+	}
+
+	//Decoding body data
+	err = json.Unmarshal(body, &reqData)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Bad request")
+	}
+
+	//Chcking id not emtpy
+	if reqData.ID == "" {
+		return c.String(http.StatusNotFound, "Metric name not found")
+	}
+
+	if reqData.MType == "" {
+		return c.String(http.StatusBadRequest, "Bad request")
+	}
+	//Dealing request depending on type
+	c.Response().Header().Set("Content-Type", "application/json")
+	switch reqData.MType {
+	case "gauge":
+		metric, err := h.valueSvc.GetMetric(reqData.ID, entity.Gauge)
+		if err != nil {
+			c.Response().Header().Set("Content-Type", "text/plain")
+			return c.String(http.StatusNotFound, "Metric name not found")
+		}
+		metricValue := metric.Value
+		reqData.Value = &metricValue
+		return c.JSON(http.StatusOK, reqData)
+	case "counter":
+		metric, err := h.valueSvc.GetMetric(reqData.ID, entity.Counter)
+		if err != nil {
+			c.Response().Header().Set("Content-Type", "text/plain")
+			return c.String(http.StatusNotFound, "Metric name not found")
+		}
+		metricValue := metric.Value
+		reqData.Value = &metricValue
+		return c.JSON(http.StatusOK, reqData)
+	default:
+		c.Response().Header().Set("Content-Type", "text/plain")
+		return c.String(http.StatusBadRequest, "Bad request")
+	}
 }
 
 func NewValueHandler(s valueHandlerSvc) *ValueHandler {

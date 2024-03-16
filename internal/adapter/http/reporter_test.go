@@ -22,7 +22,7 @@ func TestReporter(t *testing.T) {
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("metric updated"))
+		w.Write([]byte("{}"))
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(handler))

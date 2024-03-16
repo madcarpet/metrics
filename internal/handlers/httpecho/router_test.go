@@ -42,35 +42,27 @@ func TestRouter(t *testing.T) {
 			},
 		},
 		{
-			name:   "Test Update without metric name and value",
-			url:    "http://localhost:8080/update/gauge/",
-			method: http.MethodPost,
+			name:   "Test GET not completed /value",
+			url:    "http://localhost:8080/value",
+			method: http.MethodGet,
 			want: want{
-				code:        http.StatusNotFound,
+				code:        http.StatusBadRequest,
 				contentType: "text/plain; charset=UTF-8",
-				body:        "Metric name not found",
+				body:        "Bad request",
 			},
 		},
 		{
-			name:   "Test Update without metric name",
-			url:    "http://localhost:8080/update/gauge/1.21511",
+			name:   "Test POST not completed /update",
+			url:    "http://localhost:8080/update",
 			method: http.MethodPost,
 			want: want{
-				code:        http.StatusNotFound,
+				code:        http.StatusBadRequest,
 				contentType: "text/plain; charset=UTF-8",
-				body:        "Metric name not found",
+				body:        "Bad request",
 			},
 		},
 	}
 	e := echo.New()
-	e.POST("/update/:type/", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusNotFound, "Metric name not found")
-	})
-	e.POST("/update/:type/:value", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusNotFound, "Metric name not found")
-	})
 	e.Any("/*", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusBadRequest, "Bad request")

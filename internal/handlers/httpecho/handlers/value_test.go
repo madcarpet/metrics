@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,92 +17,35 @@ func TestValueHanler(t *testing.T) {
 	type want struct {
 		code        int
 		contentType string
-		body        string
+		respBody    string
 	}
 	tests := []struct {
-		name   string
-		method string
-		url    string
-		want   want
+		name    string
+		url     string
+		method  string
+		reqBody string
+		want    want
 	}{
 		{
-			name:   "Test GET correct gauge 1.114112e+06",
-			url:    "http://localhost:8080/value/gauge/TestGauge1",
-			method: http.MethodGet,
+			name:    "Test GET correct gauge 1114112",
+			url:     "http://localhost:8080/value/",
+			method:  http.MethodPost,
+			reqBody: `{"id":"TestGauge1","type":"gauge"}`,
 			want: want{
 				code:        http.StatusOK,
-				contentType: "text/plain; charset=UTF-8",
-				body:        "1.114112e+06",
-			},
-		},
-		{
-			name:   "Test GET correct gauge 879464",
-			url:    "http://localhost:8080/value/gauge/TestGauge2",
-			method: http.MethodGet,
-			want: want{
-				code:        http.StatusOK,
-				contentType: "text/plain; charset=UTF-8",
-				body:        "879464",
-			},
-		},
-		{
-			name:   "Test GET correct gauge 0.8230922114274958",
-			url:    "http://localhost:8080/value/gauge/TestGauge3",
-			method: http.MethodGet,
-			want: want{
-				code:        http.StatusOK,
-				contentType: "text/plain; charset=UTF-8",
-				body:        "0.8230922114274958",
-			},
-		},
-		{
-			name:   "Test correct counter value",
-			url:    "http://localhost:8080/value/counter/TestCounter1",
-			method: http.MethodGet,
-			want: want{
-				code:        http.StatusOK,
-				contentType: "text/plain; charset=UTF-8",
-				body:        "188",
-			},
-		},
-		{
-			name:   "Test incorrect gauge name",
-			url:    "http://localhost:8080/value/gauge/wefdfg",
-			method: http.MethodGet,
-			want: want{
-				code:        http.StatusNotFound,
-				contentType: "text/plain; charset=UTF-8",
-				body:        "Metric name not found",
-			},
-		},
-		{
-			name:   "Test incorrect counter name",
-			url:    "http://localhost:8080/value/counter/wefdfg",
-			method: http.MethodGet,
-			want: want{
-				code:        http.StatusNotFound,
-				contentType: "text/plain; charset=UTF-8",
-				body:        "Metric name not found",
-			},
-		},
-		{
-			name:   "Test incorrect metric type",
-			url:    "http://localhost:8080/value/sdsd/TestPollCount",
-			method: http.MethodGet,
-			want: want{
-				code:        http.StatusBadRequest,
-				contentType: "text/plain; charset=UTF-8",
-				body:        "Bad request",
+				contentType: "application/json",
+				respBody:    `{"id":"TestGauge1","type":"gauge","value":1114112}`,
 			},
 		},
 	}
 	db := memstorage.NewMemStorage()
 	testMetrics := []entity.Metric{
-		{Name: "TestGauge1", Type: entity.Gauge, Value: 1.114112e+06},
-		{Name: "TestGauge2", Type: entity.Gauge, Value: 879464},
-		{Name: "TestGauge3", Type: entity.Gauge, Value: 0.8230922114274958},
+		{Name: "TestGauge1", Type: entity.Gauge, Value: 1114112},
+		{Name: "TestGauge2", Type: entity.Gauge, Value: -12544},
+		{Name: "TestGauge3", Type: entity.Gauge, Value: -0.2154442},
+		{Name: "TestGauge4", Type: entity.Gauge, Value: 0.8230922114274958},
 		{Name: "TestCounter1", Type: entity.Counter, Value: 188},
-		{Name: "TestCounter2", Type: entity.Counter, Value: 991112111111},
+		{Name: "TestCounter2", Type: entity.Counter, Value: -50},
 		{Name: "TestCounter3", Type: entity.Counter, Value: 0},
 	}
 
@@ -112,17 +56,19 @@ func TestValueHanler(t *testing.T) {
 	e := echo.New()
 	valueSvc := metrics.NewGetMetricSvc(db)
 	valueHandler := NewValueHandler(valueSvc)
-	e.GET("/value/:type/:name", valueHandler.Handle)
+	e.POST("/value/", valueHandler.Handle)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			req := httptest.NewRequest(test.method, test.url, nil)
+			var bodyBuffer bytes.Buffer
+			bodyBuffer.Write([]byte(test.reqBody))
+			req := httptest.NewRequest(test.method, test.url, &bodyBuffer)
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
 			defer rec.Result().Body.Close()
 			assert.Equal(t, test.want.code, rec.Code)
 			assert.Equal(t, test.want.contentType, rec.Header().Get("Content-Type"))
-			assert.Equal(t, test.want.body, rec.Body.String())
+			assert.Equal(t, test.want.respBody, rec.Body.String())
 
 		},
 		)

@@ -1,10 +1,13 @@
 package http
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/madcarpet/metrics/internal/entity"
+	"github.com/madcarpet/metrics/internal/models"
 )
 
 type repository interface {
@@ -21,21 +24,39 @@ func NewReporter(sa string, r repository) *reporter {
 }
 
 func (r *reporter) ReportMetrics() error {
-	var mType string
+	var reqData models.Metrics
+	var body bytes.Buffer
 	metrics := r.repo.GetAllMetrics()
 	for _, metric := range metrics {
 		switch metric.Type {
 		case entity.Gauge:
-			mType = "gauge"
+			reqData = models.Metrics{
+				ID:    metric.Name,
+				MType: "gauge",
+				Value: &metric.Value,
+			}
 		case entity.Counter:
-			mType = "counter"
+			metricDelta := int64(metric.Value)
+			reqData = models.Metrics{
+				ID:    metric.Name,
+				MType: "counter",
+				Delta: &metricDelta,
+			}
 		}
-		url := fmt.Sprintf("http://%v/update/%v/%v/%v", r.serverAddress, mType, metric.Name, metric.Value)
-		r, err := http.Post(url, "text/plain", nil)
+		jsonBody, err := json.Marshal(&reqData)
+		if err != nil {
+			return fmt.Errorf("report encoding error: %s", err)
+		}
+		_, err = body.Write(jsonBody)
+		if err != nil {
+			return fmt.Errorf("json body writing to buffer error: %s", err)
+		}
+		url := fmt.Sprintf("http://%v/update/", r.serverAddress)
+		resp, err := http.Post(url, "application/json", &body)
 		if err != nil {
 			return fmt.Errorf("http error: %s", err)
 		}
-		defer r.Body.Close()
+		defer resp.Body.Close()
 	}
 	return nil
 }
