@@ -120,7 +120,7 @@ func TestUpdateHandler(t *testing.T) {
 			want: want{
 				code:        http.StatusOK,
 				contentType: "application/json",
-				respBody:    `{"id":"TestCounter1","type":"counter","delta":12,"value":12}`,
+				respBody:    `{"id":"TestCounter1","type":"counter","delta":12}`,
 			},
 		},
 		{
@@ -132,7 +132,7 @@ func TestUpdateHandler(t *testing.T) {
 			want: want{
 				code:        http.StatusOK,
 				contentType: "application/json",
-				respBody:    `{"id":"TestCounter2","type":"counter","delta":50,"value":50}`,
+				respBody:    `{"id":"TestCounter2","type":"counter","delta":50}`,
 			},
 		},
 		{
@@ -144,7 +144,7 @@ func TestUpdateHandler(t *testing.T) {
 			want: want{
 				code:        http.StatusOK,
 				contentType: "application/json",
-				respBody:    `{"id":"TestCounter3","type":"counter","delta":0,"value":0}`,
+				respBody:    `{"id":"TestCounter3","type":"counter","delta":0}`,
 			},
 		},
 		{
@@ -156,7 +156,7 @@ func TestUpdateHandler(t *testing.T) {
 			want: want{
 				code:        http.StatusOK,
 				contentType: "application/json",
-				respBody:    `{"id":"TestCounter1","type":"counter","delta":10,"value":22}`,
+				respBody:    `{"id":"TestCounter1","type":"counter","delta":22}`,
 			},
 		},
 		{
@@ -168,7 +168,7 @@ func TestUpdateHandler(t *testing.T) {
 			want: want{
 				code:        http.StatusOK,
 				contentType: "application/json",
-				respBody:    `{"id":"TestCounter1","type":"counter","delta":-2,"value":20}`,
+				respBody:    `{"id":"TestCounter1","type":"counter","delta":20}`,
 			},
 		},
 		{

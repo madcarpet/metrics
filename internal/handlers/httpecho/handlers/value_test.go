@@ -85,7 +85,7 @@ func TestValueHanler(t *testing.T) {
 			want: want{
 				code:            http.StatusOK,
 				respContentType: "application/json",
-				respBody:        `{"id":"TestCounter1","type":"counter","value":188}`,
+				respBody:        `{"id":"TestCounter1","type":"counter","delta":188}`,
 			},
 		},
 		{
@@ -97,7 +97,7 @@ func TestValueHanler(t *testing.T) {
 			want: want{
 				code:            http.StatusOK,
 				respContentType: "application/json",
-				respBody:        `{"id":"TestCounter2","type":"counter","value":-50}`,
+				respBody:        `{"id":"TestCounter2","type":"counter","delta":-50}`,
 			},
 		},
 		{
@@ -109,7 +109,7 @@ func TestValueHanler(t *testing.T) {
 			want: want{
 				code:            http.StatusOK,
 				respContentType: "application/json",
-				respBody:        `{"id":"TestCounter3","type":"counter","value":0}`,
+				respBody:        `{"id":"TestCounter3","type":"counter","delta":0}`,
 			},
 		},
 		{

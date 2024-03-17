@@ -93,8 +93,8 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			return c.String(http.StatusInternalServerError, "Server error")
 		}
-		newValue := currMetric.Value
-		updateData.Value = &newValue
+		newValue := int64(currMetric.Value)
+		updateData.Delta = &newValue
 		return c.JSON(http.StatusOK, updateData)
 
 	default:

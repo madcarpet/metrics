@@ -71,8 +71,8 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			return c.String(http.StatusNotFound, "Metric name not found")
 		}
-		metricValue := metric.Value
-		reqData.Value = &metricValue
+		metricValue := int64(metric.Value)
+		reqData.Delta = &metricValue
 		return c.JSON(http.StatusOK, reqData)
 	default:
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
