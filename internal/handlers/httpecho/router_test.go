@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/handlers/httpecho/middlewares"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,8 +62,36 @@ func TestRouter(t *testing.T) {
 				body:        "Bad request",
 			},
 		},
+		{
+			name:   "Test Update without metric name and value",
+			url:    "http://localhost:8080/update/gauge/",
+			method: http.MethodPost,
+			want: want{
+				code:        http.StatusNotFound,
+				contentType: "text/plain; charset=UTF-8",
+				body:        "Metric name not found",
+			},
+		},
+		{
+			name:   "Test Update without metric name",
+			url:    "http://localhost:8080/update/gauge/1.21511",
+			method: http.MethodPost,
+			want: want{
+				code:        http.StatusNotFound,
+				contentType: "text/plain; charset=UTF-8",
+				body:        "Metric name not found",
+			},
+		},
 	}
 	e := echo.New()
+	e.POST("/update/:type/", func(c echo.Context) error {
+		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		return c.String(http.StatusNotFound, "Metric name not found")
+	}, middlewares.ReqRespWithLogging)
+	e.POST("/update/:type/:value", func(c echo.Context) error {
+		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		return c.String(http.StatusNotFound, "Metric name not found")
+	}, middlewares.ReqRespWithLogging)
 	e.Any("/*", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusBadRequest, "Bad request")
