@@ -1,105 +1,282 @@
 package handlers
 
-// import (
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
+import (
+	"bytes"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	"github.com/madcarpet/metrics/internal/adapter/memstorage"
-// 	"github.com/madcarpet/metrics/internal/service/metrics"
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/adapter/memstorage"
+	"github.com/madcarpet/metrics/internal/service/metrics"
+	"github.com/stretchr/testify/assert"
+)
 
-// func TestUpdateHandler(t *testing.T) {
-// 	type want struct {
-// 		code        int
-// 		contentType string
-// 		body        string
-// 	}
-// 	tests := []struct {
-// 		name   string
-// 		method string
-// 		url    string
-// 		want   want
-// 	}{
-// 		{
-// 			name:   "Test update without name",
-// 			url:    "http://localhost:8080/update/gauge//1.21211",
-// 			method: http.MethodPost,
-// 			want: want{
-// 				code:        http.StatusNotFound,
-// 				contentType: "text/plain; charset=UTF-8",
-// 				body:        "Metric name not found",
-// 			},
-// 		},
-// 		{
-// 			name:   "Test wrong metric type",
-// 			url:    "http://localhost:8080/update/bool/TestGauge1/1.21211",
-// 			method: http.MethodPost,
-// 			want: want{
-// 				code:        http.StatusBadRequest,
-// 				contentType: "text/plain; charset=UTF-8",
-// 				body:        "Bad request",
-// 			},
-// 		},
-// 		{
-// 			name:   "Test gauge wrong value",
-// 			url:    "http://localhost:8080/update/gauge/TestGauge1/badvalue",
-// 			method: http.MethodPost,
-// 			want: want{
-// 				code:        http.StatusBadRequest,
-// 				contentType: "text/plain; charset=UTF-8",
-// 				body:        "Bad request",
-// 			},
-// 		},
-// 		{
-// 			name:   "Test gauge correct value",
-// 			url:    "http://localhost:8080/update/gauge/TestGauge1/1.21511",
-// 			method: http.MethodPost,
-// 			want: want{
-// 				code:        http.StatusOK,
-// 				contentType: "text/plain; charset=UTF-8",
-// 				body:        "Metric updated",
-// 			},
-// 		},
-// 		{
-// 			name:   "Test counter wrong value",
-// 			url:    "http://localhost:8080/update/counter/TestCounter1/1.21511",
-// 			method: http.MethodPost,
-// 			want: want{
-// 				code:        http.StatusBadRequest,
-// 				contentType: "text/plain; charset=UTF-8",
-// 				body:        "Bad request",
-// 			},
-// 		},
-// 		{
-// 			name:   "Test counter correct value",
-// 			url:    "http://localhost:8080/update/counter/TestCounter1/188",
-// 			method: http.MethodPost,
-// 			want: want{
-// 				code:        http.StatusOK,
-// 				contentType: "text/plain; charset=UTF-8",
-// 				body:        "Metric updated",
-// 			},
-// 		},
-// 	}
-// 	db := memstorage.NewMemStorage()
-// 	e := echo.New()
-// 	updateSvc := metrics.NewUpdateMetricSvc(db)
-// 	updateHandler := NewUpdateHandler(updateSvc)
-// 	e.POST("/update/:type/:name/:value", updateHandler.Handle)
+func TestUpdateHandler(t *testing.T) {
+	type want struct {
+		code        int
+		contentType string
+		respBody    string
+	}
+	tests := []struct {
+		name           string
+		method         string
+		reqContentType string
+		reqBody        string
+		url            string
+		want           want
+	}{
+		{
+			name:           "Test add new gauge",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestGauge1","type":"gauge","value":1212155}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestGauge1","type":"gauge","value":1212155}`,
+			},
+		},
+		{
+			name:           "Test add new negtive gauge",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestGauge2","type":"gauge","value":-215111}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestGauge2","type":"gauge","value":-215111}`,
+			},
+		},
+		{
+			name:           "Test add new gauge with point",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestGauge3","type":"gauge","value":0.12151244}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestGauge3","type":"gauge","value":0.12151244}`,
+			},
+		},
+		{
+			name:           "Test add new negative gauge with point",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestGauge4","type":"gauge","value":-12.215111}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestGauge4","type":"gauge","value":-12.215111}`,
+			},
+		},
+		{
+			name:           "Test update gauge",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestGauge1","type":"gauge","value":77.2152544}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestGauge1","type":"gauge","value":77.2152544}`,
+			},
+		},
+		{
+			name:           "Test gauge without value",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestGauge1","type":"gauge"}`,
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Bad request",
+			},
+		},
+		{
+			name:           "Test gauge with wrong value",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestGauge1","type":"gauge", "value":""}`,
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Bad request",
+			},
+		},
+		{
+			name:           "Test add new counter",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter1","type":"counter","delta":12}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestCounter1","type":"counter","delta":12,"value":12}`,
+			},
+		},
+		{
+			name:           "Test add new negative counter",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter2","type":"counter","delta":50}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestCounter2","type":"counter","delta":50,"value":50}`,
+			},
+		},
+		{
+			name:           "Test add new zero counter",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter3","type":"counter","delta":0}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestCounter3","type":"counter","delta":0,"value":0}`,
+			},
+		},
+		{
+			name:           "Test first update counter",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter1","type":"counter","delta":10}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestCounter1","type":"counter","delta":10,"value":22}`,
+			},
+		},
+		{
+			name:           "Test second update counter",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter1","type":"counter","delta":-2}`,
+			want: want{
+				code:        http.StatusOK,
+				contentType: "application/json",
+				respBody:    `{"id":"TestCounter1","type":"counter","delta":-2,"value":20}`,
+			},
+		},
+		{
+			name:           "Test counter without delta",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter1","type":"counter"}`,
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Bad request",
+			},
+		},
+		{
+			name:           "Test counter without delta and with value",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter1","type":"counter","value":50}`,
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Bad request",
+			},
+		},
+		{
+			name:           "Test counter wrong delta",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter1","type":"counter","delta":""}`,
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Bad request",
+			},
+		},
+		{
+			name:           "Test request without id",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"type":"counter","delta":12}`,
+			want: want{
+				code:        http.StatusNotFound,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Metric name not found",
+			},
+		},
+		{
+			name:           "Test request with empty id",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"","type":"counter","delta":12}`,
+			want: want{
+				code:        http.StatusNotFound,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Metric name not found",
+			},
+		},
+		{
+			name:           "Test request without type",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "application/json",
+			reqBody:        `{"id":"TestCounter1","delta":12}`,
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Bad request",
+			},
+		},
+		{
+			name:           "Test wrong Content-Type",
+			url:            "http://localhost:8080/update/",
+			method:         http.MethodPost,
+			reqContentType: "text/plain; charset=UTF-8",
+			reqBody:        `{"id":"TestCounter1","type":"counter","delta":12}`,
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=UTF-8",
+				respBody:    "Bad request",
+			},
+		},
+	}
+	db := memstorage.NewMemStorage()
+	e := echo.New()
+	updateSvc := metrics.NewUpdateMetricSvc(db)
+	getSvc := metrics.NewGetMetricSvc(db)
+	updateHandler := NewUpdateHandler(updateSvc, getSvc)
+	e.POST("/update/", updateHandler.Handle)
 
-// 	for _, test := range tests {
-// 		t.Run(test.name, func(t *testing.T) {
-// 			req := httptest.NewRequest(test.method, test.url, nil)
-// 			rec := httptest.NewRecorder()
-// 			e.ServeHTTP(rec, req)
-// 			defer rec.Result().Body.Close()
-// 			assert.Equal(t, test.want.code, rec.Code)
-// 			assert.Equal(t, test.want.contentType, rec.Header().Get("Content-Type"))
-// 			assert.Equal(t, test.want.body, rec.Body.String())
-// 		},
-// 		)
-// 	}
-// }
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var bodyBuffer bytes.Buffer
+			bodyBuffer.Write([]byte(test.reqBody))
+			req := httptest.NewRequest(test.method, test.url, &bodyBuffer)
+			req.Header.Set("Content-Type", test.reqContentType)
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+			defer rec.Result().Body.Close()
+			assert.Equal(t, test.want.code, rec.Code)
+			assert.Equal(t, test.want.contentType, rec.Header().Get("Content-Type"))
+			resRespBody := strings.TrimRight(rec.Body.String(), "\n")
+			assert.Equal(t, test.want.respBody, resRespBody)
+		},
+		)
+	}
+}
