@@ -8,15 +8,15 @@ import (
 	"github.com/madcarpet/metrics/internal/entity"
 )
 
-type updateUrlHandlerSvc interface {
+type updateURLHandlerSvc interface {
 	UpdateMetric(m entity.Metric) error
 }
 
-type UpdateUrlHandler struct {
+type UpdateURLHandler struct {
 	updateSvc updateHandlerSvc
 }
 
-func (h *UpdateUrlHandler) Handle(c echo.Context) error {
+func (h *UpdateURLHandler) Handle(c echo.Context) error {
 	mType := c.Param("type")
 	mName := c.Param("name")
 	mVal := c.Param("value")
@@ -65,8 +65,8 @@ func (h *UpdateUrlHandler) Handle(c echo.Context) error {
 	}
 }
 
-func NewUpdateUrlHandler(s updateUrlHandlerSvc) *UpdateUrlHandler {
-	return &UpdateUrlHandler{
+func NewUpdateURLHandler(s updateURLHandlerSvc) *UpdateURLHandler {
+	return &UpdateURLHandler{
 		updateSvc: s,
 	}
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateUrlHandler(t *testing.T) {
+func TestUpdateURLHandler(t *testing.T) {
 	type want struct {
 		code        int
 		contentType string
@@ -87,8 +87,8 @@ func TestUpdateUrlHandler(t *testing.T) {
 	db := memstorage.NewMemStorage()
 	e := echo.New()
 	updateSvc := metrics.NewUpdateMetricSvc(db)
-	updateUrlHandler := NewUpdateUrlHandler(updateSvc)
-	e.POST("/update/:type/:name/:value", updateUrlHandler.Handle)
+	updateURLHandler := NewUpdateURLHandler(updateSvc)
+	e.POST("/update/:type/:name/:value", updateURLHandler.Handle)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

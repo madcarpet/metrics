@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValueUrlHanler(t *testing.T) {
+func TestValueURLHanler(t *testing.T) {
 	type want struct {
 		code        int
 		contentType string
@@ -111,8 +111,8 @@ func TestValueUrlHanler(t *testing.T) {
 
 	e := echo.New()
 	valueSvc := metrics.NewGetMetricSvc(db)
-	valueUrlHandler := NewValueUrlHandler(valueSvc)
-	e.GET("/value/:type/:name", valueUrlHandler.Handle)
+	valueURLHandler := NewValueURLHandler(valueSvc)
+	e.GET("/value/:type/:name", valueURLHandler.Handle)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

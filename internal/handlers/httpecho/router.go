@@ -29,8 +29,8 @@ func SetupRouter(
 	valueHandler := handlers.NewValueHandler(valueSvc)
 	updateHandler := handlers.NewUpdateHandler(updateSvc, valueSvc)
 
-	valueUrlHandler := handlers.NewValueUrlHandler(valueSvc)
-	updateUrlHandler := handlers.NewUpdateUrlHandler(updateSvc)
+	valueURLHandler := handlers.NewValueURLHandler(valueSvc)
+	updateURLHandler := handlers.NewUpdateURLHandler(updateSvc)
 
 	// Root handling
 	e.GET("/", rootHandler.Handle, middlewares.ReqRespWithLogging)
@@ -38,7 +38,7 @@ func SetupRouter(
 	e.POST("/value/", valueHandler.Handle, middlewares.ReqRespWithLogging)
 	e.POST("/update/", updateHandler.Handle, middlewares.ReqRespWithLogging)
 	// Requests via URL handling
-	e.GET("/value/:type/:name", valueUrlHandler.Handle, middlewares.ReqRespWithLogging)
+	e.GET("/value/:type/:name", valueURLHandler.Handle, middlewares.ReqRespWithLogging)
 	e.POST("/update/:type/", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusNotFound, "Metric name not found")
@@ -47,7 +47,7 @@ func SetupRouter(
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusNotFound, "Metric name not found")
 	}, middlewares.ReqRespWithLogging)
-	e.POST("/update/:type/:name/:value", updateUrlHandler.Handle, middlewares.ReqRespWithLogging)
+	e.POST("/update/:type/:name/:value", updateURLHandler.Handle, middlewares.ReqRespWithLogging)
 	// Any handling
 	e.Any("/*", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
