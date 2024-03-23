@@ -2,44 +2,35 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/madcarpet/metrics/internal/collector"
+	"github.com/madcarpet/metrics/internal/adapter/http"
+	"github.com/madcarpet/metrics/internal/adapter/memstorage"
+	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
-// function to poll metrics from runtime and collect to collector
-func updateMetric(ms collector.MetricSource, i int64) {
-	for {
-		ms.Collect()
-		time.Sleep(time.Duration(i) * time.Second)
-	}
+type reporter interface {
+	ReportMetrics() error
 }
 
-// function to report metrics to remote server
-func sendMetric(ms collector.MetricSource, a string, i int64) {
-	for {
-		for k, v := range ms.GetGauge() {
-			url := fmt.Sprintf("http://%s/update/gauge/%v/%v", a, k, v)
-			r, err := http.Post(url, "text/plain", nil)
-			if err != nil {
-				panic(err)
-			}
-			r.Body.Close()
-		}
-		for k, v := range ms.GetCounter() {
-			url := fmt.Sprintf("http://%s/update/counter/%v/%v", a, k, v)
-			r, err := http.Post(url, "text/plain", nil)
-			if err != nil {
-				panic(err)
-			}
-			r.Body.Close()
+type collectService interface {
+	Collect(ms []string) error
+}
 
-		}
-		time.Sleep(time.Duration(i) * time.Second)
+func metricCollecting(pi int64, c collectService, ms []string) {
+	for {
+		c.Collect(ms)
+		time.Sleep(time.Duration(pi) * time.Second)
 	}
 
+}
+
+func metricReporting(ri int64, r reporter) {
+	for {
+		r.ReportMetrics()
+		time.Sleep(time.Duration(ri) * time.Second)
+	}
 }
 
 func main() {
@@ -48,8 +39,40 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	m := collector.NewMetrics()
-	go updateMetric(&m, pollInterval)
-	go sendMetric(&m, serverAddress, reportInterval)
+	ms := []string{
+		"Alloc",
+		"BuckHashSys",
+		"Frees",
+		"GCCPUFraction",
+		"GCSys",
+		"HeapAlloc",
+		"HeapIdle",
+		"HeapInuse",
+		"HeapObjects",
+		"HeapReleased",
+		"HeapSys",
+		"LastGC",
+		"Lookups",
+		"MCacheInuse",
+		"MCacheSys",
+		"MSpanInuse",
+		"MSpanSys",
+		"Mallocs",
+		"NextGC",
+		"NumForcedGC",
+		"NumGC",
+		"OtherSys",
+		"PauseTotalNs",
+		"StackInuse",
+		"StackSys",
+		"Sys",
+		"TotalAlloc",
+	}
+	db := memstorage.NewMemStorage()
+	collectorSvc := metrics.NewCollectorSvc(db)
+	reporter := http.NewReporter(serverAddress, db)
+	go metricCollecting(pollInterval, collectorSvc, ms)
+	go metricReporting(reportInterval, reporter)
+	fmt.Printf("Agent started\nReporting to: %s\nPollInterval: %d\nReportInterval: %d\n", serverAddress, pollInterval, reportInterval)
 	select {}
 }
