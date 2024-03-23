@@ -22,7 +22,7 @@ func (r *RootHandler) Handle(c echo.Context) error {
 	for _, m := range allMetrics {
 		output += fmt.Sprintf("%v: %v\n", m.Name, m.Value)
 	}
-	c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	c.Response().Header().Set("Content-Type", "text/html")
 	return c.String(http.StatusOK, output)
 }
 

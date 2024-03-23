@@ -30,7 +30,7 @@ func TestRootHandler(t *testing.T) {
 			method: http.MethodGet,
 			want: want{
 				code:        http.StatusOK,
-				contentType: "text/plain; charset=UTF-8",
+				contentType: "text/html",
 				body:        []string{"1.114112e+06", "TestGauge2", "188", "TestCounter3"},
 			},
 		},
