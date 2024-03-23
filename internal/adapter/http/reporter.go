@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -47,14 +48,27 @@ func (r *reporter) ReportMetrics() error {
 		if err != nil {
 			return fmt.Errorf("report encoding error: %s", err)
 		}
-		_, err = body.Write(jsonBody)
+
+		gzBodyWriter := gzip.NewWriter(&body)
+		_, err = gzBodyWriter.Write(jsonBody)
 		if err != nil {
-			return fmt.Errorf("json body writing to buffer error: %s", err)
+			return fmt.Errorf("json body compression to buffer error: %s", err)
+		}
+		if err := gzBodyWriter.Close(); err != nil {
+			return fmt.Errorf("gzip writer closing error: %s", err)
 		}
 		url := fmt.Sprintf("http://%v/update/", r.serverAddress)
-		resp, err := http.Post(url, "application/json", &body)
+		req, err := http.NewRequest(http.MethodPost, url, &body)
 		if err != nil {
-			return fmt.Errorf("http error: %s", err)
+			return fmt.Errorf("request formation error: %s", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Encoding", "gzip")
+		req.Header.Set("Accept-Encoding", "gzip")
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("http request sendig error: %s", err)
 		}
 		defer resp.Body.Close()
 	}

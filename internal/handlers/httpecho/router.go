@@ -33,10 +33,10 @@ func SetupRouter(
 	updateURLHandler := handlers.NewUpdateURLHandler(updateSvc)
 
 	// Root handling
-	e.GET("/", rootHandler.Handle, middlewares.ReqRespWithLogging)
+	e.GET("/", rootHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
 	// JSON requests handling
-	e.POST("/value/", valueHandler.Handle, middlewares.ReqRespWithLogging)
-	e.POST("/update/", updateHandler.Handle, middlewares.ReqRespWithLogging)
+	e.POST("/value/", valueHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
+	e.POST("/update/", updateHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
 	// Requests via URL handling
 	e.GET("/value/:type/:name", valueURLHandler.Handle, middlewares.ReqRespWithLogging)
 	e.POST("/update/:type/", func(c echo.Context) error {
@@ -47,7 +47,7 @@ func SetupRouter(
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusNotFound, "Metric name not found")
 	}, middlewares.ReqRespWithLogging)
-	e.POST("/update/:type/:name/:value", updateURLHandler.Handle, middlewares.ReqRespWithLogging)
+	e.POST("/update/:type/:name/:value", updateURLHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
 	// Any handling
 	e.Any("/*", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
