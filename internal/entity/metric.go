@@ -6,7 +6,7 @@ const (
 )
 
 type Metric struct {
-	Type  int64
-	Name  string
-	Value float64
+	Type  int64   `json:"type"`
+	Name  string  `json:"name"`
+	Value float64 `json:"value"`
 }
