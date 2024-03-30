@@ -16,20 +16,20 @@ import (
 )
 
 type dbWriter interface {
-	WriteDb() error
+	WriteDB() error
 }
 
-func writeDbToDisk(w dbWriter, i int64) {
+func writeDBToDisk(w dbWriter, i int64) {
 	logger.Log.Info(fmt.Sprintf("Server data storing interval: %d\n", i))
 	logger.Log.Info(fmt.Sprintf("Server will store data to file: %s", fileStoragePath))
 	switch i {
 	case 0:
 		for {
-			w.WriteDb()
+			w.WriteDB()
 		}
 	default:
 		for {
-			w.WriteDb()
+			w.WriteDB()
 			time.Sleep(time.Duration(i) * time.Second)
 		}
 	}
@@ -65,7 +65,7 @@ func main() {
 	}
 
 	if fileStoragePath != "" {
-		go writeDbToDisk(dbSaver, storeInterval)
+		go writeDBToDisk(dbSaver, storeInterval)
 	}
 
 	e := echo.New()
@@ -82,7 +82,7 @@ func main() {
 	case stop := <-sigChan:
 		fmt.Printf("Server stopping, recieved signal: %v\n", stop)
 		if fileStoragePath != "" {
-			dbSaver.WriteDb()
+			dbSaver.WriteDB()
 		}
 	case err := <-errChan:
 		if err != nil {

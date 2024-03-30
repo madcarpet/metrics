@@ -20,7 +20,7 @@ func NewSaver(dp string, r repository) *dbSaver {
 	return &dbSaver{path: dp, repo: r}
 }
 
-func (s *dbSaver) WriteDb() error {
+func (s *dbSaver) WriteDB() error {
 	metrics := s.repo.GetAllMetrics()
 	if len(metrics) > 0 {
 		flag := os.O_WRONLY | os.O_CREATE

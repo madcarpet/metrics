@@ -25,7 +25,7 @@ func TestDbSaver(t *testing.T) {
 	path := "../../../testdata/test_db_saver.json"
 
 	testDaver := NewSaver(path, db)
-	testDaver.WriteDb()
+	testDaver.WriteDB()
 
 	_, err := os.Stat(path)
 	if err != nil {
