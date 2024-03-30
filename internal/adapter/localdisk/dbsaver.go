@@ -24,7 +24,7 @@ func (s *dbSaver) WriteDB() error {
 	metrics := s.repo.GetAllMetrics()
 	if len(metrics) > 0 {
 		flag := os.O_WRONLY | os.O_CREATE
-		df, err := os.OpenFile(s.path, flag, 0644)
+		df, err := os.OpenFile(s.path, flag, 0655)
 		if err != nil {
 			return err
 		}
