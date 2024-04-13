@@ -39,8 +39,7 @@ func NewServerConfig() (*ServerConfig, error) {
 	flag.StringVar(&config.ServerAddress, "a", "localhost:8080", "Address server listen to")
 	flag.StringVar(&config.LoggingLevel, "l", "info", "Logging level")
 	flag.Int64Var(&config.StoreInterval, "i", 300, "Store interval")
-	// flag.StringVar(&config.FilePath, "f", "/tmp/metrics-db.json", "Path to store server DB")
-	flag.StringVar(&config.FilePath, "f", "./metrics-db.json", "Path to store server data")
+	flag.StringVar(&config.FilePath, "f", "/tmp/metrics-db.json", "Path to store server data")
 	flag.BoolVar(&config.IsRestore, "r", false, "Restore DB from file")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
