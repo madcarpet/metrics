@@ -1,20 +1,19 @@
 package metrics
 
-import "github.com/madcarpet/metrics/internal/entity"
-
-type getAllMetricsRepo interface {
-	GetAllMetrics() []entity.Metric
-}
+import (
+	"github.com/madcarpet/metrics/internal/adapter/storage"
+	"github.com/madcarpet/metrics/internal/entity"
+)
 
 type GetAllMetricsSvc struct {
-	repo getAllMetricsRepo
+	repo storage.Repository
 }
 
 func (s *GetAllMetricsSvc) GetAllMetrics() []entity.Metric {
 	return s.repo.GetAllMetrics()
 }
 
-func NewGetAllMetricsSvc(r getAllMetricsRepo) *GetAllMetricsSvc {
+func NewGetAllMetricsSvc(r storage.Repository) *GetAllMetricsSvc {
 	return &GetAllMetricsSvc{
 		repo: r,
 	}

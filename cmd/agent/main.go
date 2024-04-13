@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/madcarpet/metrics/internal/adapter/http"
-	"github.com/madcarpet/metrics/internal/adapter/memstorage"
+	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 

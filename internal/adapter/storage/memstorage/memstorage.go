@@ -51,3 +51,11 @@ func (s *MemStorage) UpdateMetric(m entity.Metric) error {
 func (s *MemStorage) GetAllMetrics() []entity.Metric {
 	return s.metrics
 }
+
+func (s *MemStorage) ExportToFile() error {
+	return nil
+}
+
+func (s *MemStorage) ImportFromFile() error {
+	return nil
+}

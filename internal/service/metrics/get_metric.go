@@ -1,13 +1,12 @@
 package metrics
 
-import "github.com/madcarpet/metrics/internal/entity"
-
-type getMetricRepo interface {
-	GetByNameAndType(n string, t int64) (entity.Metric, error)
-}
+import (
+	"github.com/madcarpet/metrics/internal/adapter/storage"
+	"github.com/madcarpet/metrics/internal/entity"
+)
 
 type GetMetricSvc struct {
-	repo getMetricRepo
+	repo storage.Repository
 }
 
 func (s *GetMetricSvc) GetMetric(n string, t int64) (entity.Metric, error) {
@@ -18,7 +17,7 @@ func (s *GetMetricSvc) GetMetric(n string, t int64) (entity.Metric, error) {
 	return metric, nil
 }
 
-func NewGetMetricSvc(r getMetricRepo) *GetMetricSvc {
+func NewGetMetricSvc(r storage.Repository) *GetMetricSvc {
 	return &GetMetricSvc{
 		repo: r,
 	}

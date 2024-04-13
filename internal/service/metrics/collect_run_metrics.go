@@ -6,20 +6,16 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/madcarpet/metrics/internal/adapter/storage"
 	"github.com/madcarpet/metrics/internal/entity"
 )
 
-type collectorRepo interface {
-	UpdateMetric(m entity.Metric) error
-	GetByNameAndType(n string, t int64) (entity.Metric, error)
-}
-
-func NewCollectorSvc(r collectorRepo) *MetricCollectorSvc {
+func NewCollectorSvc(r storage.Repository) *MetricCollectorSvc {
 	return &MetricCollectorSvc{repo: r}
 }
 
 type MetricCollectorSvc struct {
-	repo collectorRepo
+	repo storage.Repository
 }
 
 func (c *MetricCollectorSvc) Collect(ms []string) error {

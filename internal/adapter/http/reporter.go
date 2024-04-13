@@ -7,20 +7,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/madcarpet/metrics/internal/adapter/storage"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/models"
 )
 
-type repository interface {
-	GetAllMetrics() []entity.Metric
-}
-
 type reporter struct {
 	serverAddress string
-	repo          repository
+	repo          storage.Repository
 }
 
-func NewReporter(sa string, r repository) *reporter {
+func NewReporter(sa string, r storage.Repository) *reporter {
 	return &reporter{serverAddress: sa, repo: r}
 }
 

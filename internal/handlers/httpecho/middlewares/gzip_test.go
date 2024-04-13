@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/madcarpet/metrics/internal/adapter/memstorage"
+	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
 	"github.com/madcarpet/metrics/internal/handlers/httpecho/handlers"
 	"github.com/madcarpet/metrics/internal/service/metrics"
 	"github.com/stretchr/testify/assert"

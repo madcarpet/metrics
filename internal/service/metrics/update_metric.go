@@ -3,15 +3,12 @@ package metrics
 import (
 	"fmt"
 
+	"github.com/madcarpet/metrics/internal/adapter/storage"
 	"github.com/madcarpet/metrics/internal/entity"
 )
 
-type updateMetricRepo interface {
-	UpdateMetric(m entity.Metric) error
-}
-
 type UpdateMetricSvc struct {
-	repo updateMetricRepo
+	repo storage.Repository
 }
 
 func (s *UpdateMetricSvc) UpdateMetric(m entity.Metric) error {
@@ -22,7 +19,7 @@ func (s *UpdateMetricSvc) UpdateMetric(m entity.Metric) error {
 	return nil
 }
 
-func NewUpdateMetricSvc(r updateMetricRepo) *UpdateMetricSvc {
+func NewUpdateMetricSvc(r storage.Repository) *UpdateMetricSvc {
 	return &UpdateMetricSvc{
 		repo: r,
 	}

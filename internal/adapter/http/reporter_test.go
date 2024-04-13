@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/madcarpet/metrics/internal/adapter/memstorage"
+	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/stretchr/testify/assert"
 )
