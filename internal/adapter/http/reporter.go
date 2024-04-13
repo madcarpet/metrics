@@ -31,15 +31,18 @@ func (r *reporter) ReportMetrics() error {
 	for _, metric := range metrics {
 		switch metric.Type {
 		case entity.Gauge:
+			mName := metric.Name
+			mVal := metric.Value
 			reqData = models.Metrics{
-				ID:    metric.Name,
+				ID:    mName,
 				MType: "gauge",
-				Value: &metric.Value,
+				Value: &mVal,
 			}
 		case entity.Counter:
+			mName := metric.Name
 			metricDelta := int64(metric.Value)
 			reqData = models.Metrics{
-				ID:    metric.Name,
+				ID:    mName,
 				MType: "counter",
 				Delta: &metricDelta,
 			}

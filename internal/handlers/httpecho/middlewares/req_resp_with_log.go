@@ -16,7 +16,7 @@ func ReqRespWithLogging(next echo.HandlerFunc) echo.HandlerFunc {
 		err := next(c)
 		duration := time.Since(start)
 		resp := c.Response()
-		logger.Log.Info("Request data", zap.String("URI", req.RequestURI), zap.String("Metod", req.Method), zap.Duration("Duration", time.Duration(duration)))
+		logger.Log.Info("Request data", zap.String("URI", req.RequestURI), zap.String("Metod", req.Method), zap.Duration("Duration", duration))
 		logger.Log.Info("Response data", zap.String("Code", fmt.Sprintf("%d", resp.Status)), zap.String("Size", fmt.Sprintf("%d", resp.Size)))
 		return err
 	}

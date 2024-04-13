@@ -58,7 +58,6 @@ func GzipCompression(next echo.HandlerFunc) echo.HandlerFunc {
 			//Switch c.Request().Body to custom gzReader with decompression
 			c.Request().Body = gzReader{ReadCloser: c.Request().Body, Reader: rgz}
 		}
-		next(c)
-		return nil
+		return next(c)
 	}
 }
