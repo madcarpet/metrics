@@ -89,3 +89,11 @@ func (fs *FileStorage) ImportFromFile() error {
 	}
 	return nil
 }
+
+func (fs *FileStorage) CloseFile() error {
+	err := fs.file.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}

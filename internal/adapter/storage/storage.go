@@ -8,4 +8,5 @@ type Repository interface {
 	GetAllMetrics() []entity.Metric
 	ExportToFile() error
 	ImportFromFile() error
+	CloseFile() error
 }

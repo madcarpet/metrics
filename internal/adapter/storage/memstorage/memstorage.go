@@ -59,3 +59,7 @@ func (s *MemStorage) ExportToFile() error {
 func (s *MemStorage) ImportFromFile() error {
 	return nil
 }
+
+func (s *MemStorage) CloseFile() error {
+	return nil
+}

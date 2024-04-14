@@ -117,5 +117,9 @@ func (sc *ServerConfig) Stop() error {
 	if err != nil {
 		return err
 	}
+	err = sc.Storage.CloseFile()
+	if err != nil {
+		return err
+	}
 	return nil
 }
