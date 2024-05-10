@@ -12,6 +12,7 @@ import (
 	"github.com/madcarpet/metrics/internal/adapter/storage"
 	"github.com/madcarpet/metrics/internal/adapter/storage/filestorage"
 	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
+	"github.com/madcarpet/metrics/internal/adapter/storage/pgstorage"
 	"github.com/madcarpet/metrics/internal/handlers/httpecho"
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
@@ -24,6 +25,7 @@ type ServerConfig struct {
 	FilePath      string
 	IsRestore     bool
 	Storage       storage.Repository
+	DBUrl         string
 	Services
 	Router *echo.Echo
 }
@@ -32,6 +34,7 @@ type Services struct {
 	Root   *metrics.GetAllMetricsSvc
 	Value  *metrics.GetMetricSvc
 	Update *metrics.UpdateMetricSvc
+	Ping   *metrics.PingSvc
 }
 
 func NewServerConfig() (*ServerConfig, error) {
@@ -41,6 +44,7 @@ func NewServerConfig() (*ServerConfig, error) {
 	flag.Int64Var(&config.StoreInterval, "i", 300, "Store interval")
 	flag.StringVar(&config.FilePath, "f", "/tmp/metrics-db.json", "Path to store server data")
 	flag.BoolVar(&config.IsRestore, "r", false, "Restore DB from file")
+	flag.StringVar(&config.DBUrl, "d", "", "DB Url or params in DSN format")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		return nil, errors.New("entered unknown args")
@@ -75,7 +79,18 @@ func NewServerConfig() (*ServerConfig, error) {
 		}
 		config.IsRestore = isRstrValue
 	}
-	if config.IsRestore || len(config.FilePath) > 0 {
+
+	if dbURL := os.Getenv("DATABASE_DSN"); dbURL != "" {
+		config.DBUrl = dbURL
+	}
+
+	if config.DBUrl != "" {
+		var err error
+		config.Storage, err = pgstorage.NewPGStorage(config.DBUrl)
+		if err != nil {
+			return nil, err
+		}
+	} else if config.IsRestore || len(config.FilePath) > 0 {
 		var err error
 		config.Storage, err = filestorage.NewFileStorage(config.FilePath, config.SyncWrite)
 		if err != nil {
@@ -87,13 +102,14 @@ func NewServerConfig() (*ServerConfig, error) {
 	config.Root = metrics.NewGetAllMetricsSvc(config.Storage)
 	config.Value = metrics.NewGetMetricSvc(config.Storage)
 	config.Update = metrics.NewUpdateMetricSvc(config.Storage)
+	config.Ping = metrics.NewPingSvc(config.Storage)
 	config.Router = echo.New()
 	return &config, nil
 }
 
 func (sc *ServerConfig) Start() error {
 	fmt.Println(sc.FilePath, sc.StoreInterval)
-	httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update)
+	httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Ping)
 	if sc.IsRestore {
 		err := sc.Storage.ImportFromFile()
 		if err != nil {
@@ -117,7 +133,7 @@ func (sc *ServerConfig) Stop() error {
 	if err != nil {
 		return err
 	}
-	err = sc.Storage.CloseFile()
+	err = sc.Storage.Close()
 	if err != nil {
 		return err
 	}

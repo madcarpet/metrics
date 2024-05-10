@@ -1,6 +1,7 @@
 package httpecho
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -19,15 +20,21 @@ type valueHandlerSvc interface {
 	GetMetric(n string, t int64) (entity.Metric, error)
 }
 
+type pingHandelerSvc interface {
+	Ping(ctx context.Context) error
+}
+
 func SetupRouter(
 	e *echo.Echo,
 	rootSvc rootHandlerSvc,
 	valueSvc valueHandlerSvc,
 	updateSvc updateHandlerSvc,
+	pingSvc pingHandelerSvc,
 ) {
 	rootHandler := handlers.NewRootHandler(rootSvc)
 	valueHandler := handlers.NewValueHandler(valueSvc)
 	updateHandler := handlers.NewUpdateHandler(updateSvc, valueSvc)
+	pingHandler := handlers.NewPingHandler(context.Background(), pingSvc)
 
 	valueURLHandler := handlers.NewValueURLHandler(valueSvc)
 	updateURLHandler := handlers.NewUpdateURLHandler(updateSvc)
@@ -39,6 +46,7 @@ func SetupRouter(
 	e.POST("/update/", updateHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
 	// Requests via URL handling
 	e.GET("/value/:type/:name", valueURLHandler.Handle, middlewares.ReqRespWithLogging)
+	e.GET("/ping", pingHandler.Handle, middlewares.ReqRespWithLogging)
 	e.POST("/update/:type/", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusNotFound, "Metric name not found")

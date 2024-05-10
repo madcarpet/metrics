@@ -1,6 +1,10 @@
 package storage
 
-import "github.com/madcarpet/metrics/internal/entity"
+import (
+	"context"
+
+	"github.com/madcarpet/metrics/internal/entity"
+)
 
 type Repository interface {
 	GetByNameAndType(n string, t int64) (entity.Metric, error)
@@ -8,5 +12,6 @@ type Repository interface {
 	GetAllMetrics() []entity.Metric
 	ExportToFile() error
 	ImportFromFile() error
-	CloseFile() error
+	Close() error
+	IsConnected(ctx context.Context) error
 }

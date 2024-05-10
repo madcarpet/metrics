@@ -14,7 +14,7 @@ func main() {
 	//create channels for error and stopping
 	sigChan := make(chan os.Signal, 1)
 	errChan := make(chan error)
-	//register system signals wuth channels
+	//register system signals with channels
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	serverConfig, err := config.NewServerConfig()

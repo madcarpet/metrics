@@ -1,6 +1,7 @@
 package memstorage
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -60,6 +61,10 @@ func (s *MemStorage) ImportFromFile() error {
 	return nil
 }
 
-func (s *MemStorage) CloseFile() error {
+func (s *MemStorage) Close() error {
 	return nil
+}
+
+func (s *MemStorage) IsConnected(ctx context.Context) error {
+	return fmt.Errorf("DB type without connection support")
 }

@@ -2,7 +2,9 @@ package filestorage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 
@@ -90,10 +92,14 @@ func (fs *FileStorage) ImportFromFile() error {
 	return nil
 }
 
-func (fs *FileStorage) CloseFile() error {
+func (fs *FileStorage) Close() error {
 	err := fs.file.Close()
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (fs *FileStorage) IsConnected(ctx context.Context) error {
+	return fmt.Errorf("DB type without connection support")
 }

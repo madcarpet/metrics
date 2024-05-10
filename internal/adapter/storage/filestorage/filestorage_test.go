@@ -48,7 +48,7 @@ func TestFileStorage(t *testing.T) {
 	}
 	storageImport.file.Close()
 
-	err = storage.CloseFile()
+	err = storage.Close()
 	assert.Nil(t, err)
 
 	err = os.Remove(testFile)
