@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -11,11 +12,11 @@ import (
 )
 
 type updateHandlerSvc interface {
-	UpdateMetric(m entity.Metric) error
+	UpdateMetric(ctx context.Context, m entity.Metric) error
 }
 
 type updateHandlerGetSvc interface {
-	GetMetric(n string, t int64) (entity.Metric, error)
+	GetMetric(ctx context.Context, n string, t int64) (entity.Metric, error)
 }
 
 type UpdateHandler struct {
@@ -67,7 +68,7 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 			Name:  updateData.ID,
 			Value: *updateData.Value,
 		}
-		err = h.updateSvc.UpdateMetric(metric)
+		err = h.updateSvc.UpdateMetric(c.Request().Context(), metric)
 		if err != nil {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			return c.String(http.StatusInternalServerError, "Server error")
@@ -83,12 +84,12 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 			Name:  updateData.ID,
 			Value: float64(*updateData.Delta),
 		}
-		err = h.updateSvc.UpdateMetric(metric)
+		err = h.updateSvc.UpdateMetric(c.Request().Context(), metric)
 		if err != nil {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			return c.String(http.StatusInternalServerError, "Server error")
 		}
-		currMetric, err := h.getSvc.GetMetric(updateData.ID, entity.Counter)
+		currMetric, err := h.getSvc.GetMetric(c.Request().Context(), updateData.ID, entity.Counter)
 		if err != nil {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			return c.String(http.StatusInternalServerError, "Server error")

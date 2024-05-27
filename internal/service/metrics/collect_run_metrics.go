@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -37,7 +38,7 @@ func (c *MetricCollectorSvc) Collect(ms []string) error {
 		}
 		metric.Type = entity.Gauge
 		metric.Name = key
-		err := c.repo.UpdateMetric(metric)
+		err := c.repo.UpdateMetric(context.Background(), metric)
 		if err != nil {
 			return fmt.Errorf("couldn't store metric")
 		}
@@ -45,14 +46,14 @@ func (c *MetricCollectorSvc) Collect(ms []string) error {
 	metric.Type = entity.Gauge
 	metric.Name = "RandomValue"
 	metric.Value = rand.Float64()
-	err := c.repo.UpdateMetric(metric)
+	err := c.repo.UpdateMetric(context.Background(), metric)
 	if err != nil {
 		return fmt.Errorf("couldn't store metric")
 	}
 	metric.Type = entity.Counter
 	metric.Name = "PollCount"
 	metric.Value = 1
-	err = c.repo.UpdateMetric(metric)
+	err = c.repo.UpdateMetric(context.Background(), metric)
 	if err != nil {
 		return fmt.Errorf("couldn't store metric")
 	}

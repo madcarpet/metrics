@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -9,7 +10,7 @@ import (
 )
 
 type rootHandlerSvc interface {
-	GetAllMetrics() []entity.Metric
+	GetAllMetrics(ctx context.Context) []entity.Metric
 }
 
 type RootHandler struct {
@@ -18,7 +19,7 @@ type RootHandler struct {
 
 func (r *RootHandler) Handle(c echo.Context) error {
 	var output string
-	allMetrics := r.rootSvc.GetAllMetrics()
+	allMetrics := r.rootSvc.GetAllMetrics(c.Request().Context())
 	for _, m := range allMetrics {
 		output += fmt.Sprintf("%v: %v\n", m.Name, m.Value)
 	}

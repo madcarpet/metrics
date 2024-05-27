@@ -11,13 +11,13 @@ import (
 )
 
 type rootHandlerSvc interface {
-	GetAllMetrics() []entity.Metric
+	GetAllMetrics(ctx context.Context) []entity.Metric
 }
 type updateHandlerSvc interface {
-	UpdateMetric(m entity.Metric) error
+	UpdateMetric(ctx context.Context, m entity.Metric) error
 }
 type valueHandlerSvc interface {
-	GetMetric(n string, t int64) (entity.Metric, error)
+	GetMetric(ctx context.Context, n string, t int64) (entity.Metric, error)
 }
 
 type pingHandelerSvc interface {

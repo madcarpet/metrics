@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -106,7 +107,7 @@ func TestValueURLHanler(t *testing.T) {
 	}
 
 	for _, m := range testMetrics {
-		db.UpdateMetric(m)
+		db.UpdateMetric(context.Background(), m)
 	}
 
 	e := echo.New()

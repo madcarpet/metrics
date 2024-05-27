@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -185,7 +186,7 @@ func TestValueHanler(t *testing.T) {
 	}
 
 	for _, m := range testMetrics {
-		db.UpdateMetric(m)
+		db.UpdateMetric(context.Background(), m)
 	}
 
 	e := echo.New()

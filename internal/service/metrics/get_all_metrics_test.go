@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"testing"
 
 	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
@@ -18,8 +19,8 @@ func TestGetAllMetrics(t *testing.T) {
 		{Name: "PollCount", Type: entity.Counter, Value: 991112111111},
 	}
 	for _, metric := range testMetrics {
-		db.UpdateMetric(metric)
+		db.UpdateMetric(context.Background(), metric)
 	}
 	getAllMetricsSvc := NewGetAllMetricsSvc(db)
-	assert.Equal(t, testMetrics, getAllMetricsSvc.GetAllMetrics())
+	assert.Equal(t, testMetrics, getAllMetricsSvc.GetAllMetrics(context.Background()))
 }

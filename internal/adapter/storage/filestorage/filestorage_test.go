@@ -1,6 +1,7 @@
 package filestorage
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestFileStorage(t *testing.T) {
 	checkMetrics := []string{`{"type":1,"name":"TestGauge1","value":1.111111}`, `{"type":2,"name":"TestCounter1","value":99}`}
 
 	for _, metric := range updateMetrics {
-		storage.UpdateMetric(metric)
+		storage.UpdateMetric(context.Background(), metric)
 	}
 
 	err = storage.ExportToFile()
@@ -42,7 +43,7 @@ func TestFileStorage(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, met := range updateMetrics {
-		metricImported, err := storage.GetByNameAndType(met.Name, met.Type)
+		metricImported, err := storage.GetByNameAndType(context.Background(), met.Name, met.Type)
 		assert.Nil(t, err)
 		assert.Equal(t, metricImported, met)
 	}

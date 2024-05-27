@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -24,7 +25,7 @@ func NewReporter(sa string, r storage.Repository) *reporter {
 func (r *reporter) ReportMetrics() error {
 	var reqData models.Metrics
 	var body bytes.Buffer
-	metrics := r.repo.GetAllMetrics()
+	metrics := r.repo.GetAllMetrics(context.Background())
 	for _, metric := range metrics {
 		switch metric.Type {
 		case entity.Gauge:

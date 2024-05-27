@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -11,7 +13,7 @@ import (
 )
 
 type valueHandlerSvc interface {
-	GetMetric(n string, t int64) (entity.Metric, error)
+	GetMetric(ctx context.Context, n string, t int64) (entity.Metric, error)
 }
 
 type ValueHandler struct {
@@ -57,16 +59,18 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 	c.Response().Header().Set("Content-Type", "application/json")
 	switch reqData.MType {
 	case "gauge":
-		metric, err := h.valueSvc.GetMetric(reqData.ID, entity.Gauge)
+		metric, err := h.valueSvc.GetMetric(c.Request().Context(), reqData.ID, entity.Gauge)
 		if err != nil {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			//TODO: убрать
+			fmt.Println(err)
 			return c.String(http.StatusNotFound, "Metric name not found")
 		}
 		metricValue := metric.Value
 		reqData.Value = &metricValue
 		return c.JSON(http.StatusOK, reqData)
 	case "counter":
-		metric, err := h.valueSvc.GetMetric(reqData.ID, entity.Counter)
+		metric, err := h.valueSvc.GetMetric(c.Request().Context(), reqData.ID, entity.Counter)
 		if err != nil {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			return c.String(http.StatusNotFound, "Metric name not found")

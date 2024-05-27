@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -9,7 +10,7 @@ import (
 )
 
 type updateURLHandlerSvc interface {
-	UpdateMetric(m entity.Metric) error
+	UpdateMetric(ctx context.Context, m entity.Metric) error
 }
 
 type UpdateURLHandler struct {
@@ -36,7 +37,7 @@ func (h *UpdateURLHandler) Handle(c echo.Context) error {
 			Name:  mName,
 			Value: val,
 		}
-		err = h.updateSvc.UpdateMetric(metric)
+		err = h.updateSvc.UpdateMetric(c.Request().Context(), metric)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Server error")
 		}
@@ -55,7 +56,7 @@ func (h *UpdateURLHandler) Handle(c echo.Context) error {
 			Name:  mName,
 			Value: val,
 		}
-		err = h.updateSvc.UpdateMetric(metric)
+		err = h.updateSvc.UpdateMetric(c.Request().Context(), metric)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Server error")
 		}

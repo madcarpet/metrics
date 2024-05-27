@@ -37,8 +37,8 @@ func NewFileStorage(fileName string, syncmode bool) (*FileStorage, error) {
 	}, nil
 }
 
-func (fs *FileStorage) UpdateMetric(m entity.Metric) error {
-	err := fs.MemStorage.UpdateMetric(m)
+func (fs *FileStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
+	err := fs.MemStorage.UpdateMetric(ctx, m)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (fs *FileStorage) UpdateMetric(m entity.Metric) error {
 }
 
 func (fs *FileStorage) ExportToFile() error {
-	metrics := fs.GetAllMetrics()
+	metrics := fs.GetAllMetrics(context.Background())
 	for _, m := range metrics {
 		data, err := json.Marshal(m)
 		if err != nil {
@@ -81,7 +81,7 @@ func (fs *FileStorage) ImportFromFile() error {
 		if err != nil {
 			return err
 		}
-		err = fs.UpdateMetric(metric)
+		err = fs.UpdateMetric(context.Background(), metric)
 		if err != nil {
 			return err
 		}

@@ -60,32 +60,32 @@ func (mr *MockRepositoryMockRecorder) ExportToFile() *gomock.Call {
 }
 
 // GetAllMetrics mocks base method.
-func (m *MockRepository) GetAllMetrics() []entity.Metric {
+func (m *MockRepository) GetAllMetrics(arg0 context.Context) []entity.Metric {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllMetrics")
+	ret := m.ctrl.Call(m, "GetAllMetrics", arg0)
 	ret0, _ := ret[0].([]entity.Metric)
 	return ret0
 }
 
 // GetAllMetrics indicates an expected call of GetAllMetrics.
-func (mr *MockRepositoryMockRecorder) GetAllMetrics() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetAllMetrics(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMetrics", reflect.TypeOf((*MockRepository)(nil).GetAllMetrics))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllMetrics", reflect.TypeOf((*MockRepository)(nil).GetAllMetrics), arg0)
 }
 
 // GetByNameAndType mocks base method.
-func (m *MockRepository) GetByNameAndType(arg0 string, arg1 int64) (entity.Metric, error) {
+func (m *MockRepository) GetByNameAndType(arg0 context.Context, arg1 string, arg2 int64) (entity.Metric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByNameAndType", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetByNameAndType", arg0, arg1, arg2)
 	ret0, _ := ret[0].(entity.Metric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByNameAndType indicates an expected call of GetByNameAndType.
-func (mr *MockRepositoryMockRecorder) GetByNameAndType(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetByNameAndType(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNameAndType", reflect.TypeOf((*MockRepository)(nil).GetByNameAndType), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNameAndType", reflect.TypeOf((*MockRepository)(nil).GetByNameAndType), arg0, arg1, arg2)
 }
 
 // ImportFromFile mocks base method.
@@ -117,15 +117,15 @@ func (mr *MockRepositoryMockRecorder) IsConnected(arg0 interface{}) *gomock.Call
 }
 
 // UpdateMetric mocks base method.
-func (m *MockRepository) UpdateMetric(arg0 entity.Metric) error {
+func (m *MockRepository) UpdateMetric(arg0 context.Context, arg1 entity.Metric) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMetric", arg0)
+	ret := m.ctrl.Call(m, "UpdateMetric", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateMetric indicates an expected call of UpdateMetric.
-func (mr *MockRepositoryMockRecorder) UpdateMetric(arg0 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) UpdateMetric(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetric", reflect.TypeOf((*MockRepository)(nil).UpdateMetric), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetric", reflect.TypeOf((*MockRepository)(nil).UpdateMetric), arg0, arg1)
 }

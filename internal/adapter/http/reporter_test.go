@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,7 +18,7 @@ func TestReporter(t *testing.T) {
 		{Name: "TestCounter1", Type: entity.Counter, Value: 188},
 	}
 	for _, metric := range testMetrics {
-		db.UpdateMetric(metric)
+		db.UpdateMetric(context.Background(), metric)
 	}
 
 	handler := func(w http.ResponseWriter, r *http.Request) {

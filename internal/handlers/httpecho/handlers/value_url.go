@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -9,7 +10,7 @@ import (
 )
 
 type valueURLHandlerSvc interface {
-	GetMetric(n string, t int64) (entity.Metric, error)
+	GetMetric(ctx context.Context, n string, t int64) (entity.Metric, error)
 }
 
 type ValueURLHandler struct {
@@ -21,14 +22,14 @@ func (h *ValueURLHandler) Handle(c echo.Context) error {
 	mName := c.Param("name")
 	switch mType {
 	case "gauge":
-		metric, err := h.valueSvc.GetMetric(mName, entity.Gauge)
+		metric, err := h.valueSvc.GetMetric(c.Request().Context(), mName, entity.Gauge)
 		if err != nil {
 			return c.String(http.StatusNotFound, "Metric name not found")
 		}
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusOK, fmt.Sprintf("%v", metric.Value))
 	case "counter":
-		metric, err := h.valueSvc.GetMetric(mName, entity.Counter)
+		metric, err := h.valueSvc.GetMetric(c.Request().Context(), mName, entity.Counter)
 		if err != nil {
 			return c.String(http.StatusNotFound, "Metric name not found")
 		}

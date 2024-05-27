@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"testing"
 
 	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
@@ -19,7 +20,7 @@ func TestUpdateMetric(t *testing.T) {
 	}
 	uptateMetricSvc := NewUpdateMetricSvc(db)
 	for _, metric := range testMetrics {
-		uptateMetricSvc.UpdateMetric(metric)
+		uptateMetricSvc.UpdateMetric(context.Background(), metric)
 	}
-	assert.Equal(t, testMetrics, db.GetAllMetrics())
+	assert.Equal(t, testMetrics, db.GetAllMetrics(context.Background()))
 }
