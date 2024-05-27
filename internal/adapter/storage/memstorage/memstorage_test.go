@@ -39,29 +39,29 @@ func TestMemStorage(t *testing.T) {
 
 	//Initial dp filling
 	for _, metric := range valueMetrics {
-		storage.UpdateMetric(context.Background(), metric)
+		storage.UpdateMetric(context.TODO(), metric)
 	}
 	//Get metrics testing
 	for _, metric := range valueMetrics {
-		testMetric, _ := storage.GetByNameAndType(context.Background(), metric.Name, metric.Type)
+		testMetric, _ := storage.GetByNameAndType(context.TODO(), metric.Name, metric.Type)
 		assert.Equal(t, metric.Name, testMetric.Name)
 		assert.Equal(t, metric.Type, testMetric.Type)
 		assert.Equal(t, metric.Value, testMetric.Value)
 	}
 	//Update metrics
 	for _, metric := range updateMetrics {
-		storage.UpdateMetric(context.Background(), metric)
+		storage.UpdateMetric(context.TODO(), metric)
 	}
 	//Updated metric testing
 	for _, metric := range resultMetrics {
-		testMetric, _ := storage.GetByNameAndType(context.Background(), metric.Name, metric.Type)
+		testMetric, _ := storage.GetByNameAndType(context.TODO(), metric.Name, metric.Type)
 		assert.Equal(t, metric.Name, testMetric.Name)
 		assert.Equal(t, metric.Type, testMetric.Type)
 		assert.Equal(t, metric.Value, testMetric.Value)
 	}
 
 	//Test not created metric
-	_, err := storage.GetByNameAndType(context.Background(), "nometric", entity.Counter)
+	_, err := storage.GetByNameAndType(context.TODO(), "nometric", entity.Counter)
 	assert.NotNil(t, err)
 
 	//Test all metrics stored
@@ -71,8 +71,8 @@ func TestMemStorage(t *testing.T) {
 	assert.Equal(t, resultMetrics, storage.metrics)
 
 	//Test counter summ
-	storage.UpdateMetric(context.Background(), entity.Metric{Name: "TestCounter4", Type: entity.Counter, Value: 4})
-	summedCounterMetric, err := storage.GetByNameAndType(context.Background(), "TestCounter4", entity.Counter)
+	storage.UpdateMetric(context.TODO(), entity.Metric{Name: "TestCounter4", Type: entity.Counter, Value: 4})
+	summedCounterMetric, err := storage.GetByNameAndType(context.TODO(), "TestCounter4", entity.Counter)
 	assert.Nil(t, err)
 	assert.Equal(t, float64(8), summedCounterMetric.Value)
 
