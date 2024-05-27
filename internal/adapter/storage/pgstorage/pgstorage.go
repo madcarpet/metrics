@@ -23,26 +23,6 @@ func NewPGStorage(Params string) (*PGStorage, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = db.PingContext(context.TODO())
-	if err != nil {
-		return nil, err
-	}
-
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		return nil, err
-	}
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://../../migrations",
-		"postgres", driver)
-	if err != nil {
-		return nil, err
-	}
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		return nil, err
-	}
-
-	fmt.Println("Migrations applied successfully!")
 
 	return &PGStorage{
 		DB: db,
@@ -50,7 +30,7 @@ func NewPGStorage(Params string) (*PGStorage, error) {
 }
 
 func (s *PGStorage) IsConnected(ctx context.Context) error {
-	subCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	subCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	if err := s.DB.PingContext(subCtx); err != nil {
 		return err
@@ -134,5 +114,24 @@ func (s *PGStorage) ExportToFile() error {
 }
 
 func (s *PGStorage) ImportFromFile() error {
+	return nil
+}
+
+func DBMigration(path string, db *sql.DB) error {
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://"+path,
+		"postgres", driver)
+	if err != nil {
+		return err
+	}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+
+	fmt.Println("Migrations applied successfully!")
 	return nil
 }

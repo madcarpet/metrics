@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -86,10 +87,18 @@ func NewServerConfig() (*ServerConfig, error) {
 
 	if config.DBUrl != "" {
 		var err error
-		config.Storage, err = pgstorage.NewPGStorage(config.DBUrl)
+		pg, err := pgstorage.NewPGStorage(config.DBUrl)
 		if err != nil {
 			return nil, err
 		}
+		ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
+		if err = pg.DB.PingContext(ctx); err == nil {
+			err = pgstorage.DBMigration("../../migrations", pg.DB)
+			if err != nil {
+				return nil, err
+			}
+		}
+		config.Storage = pg
 	} else if config.IsRestore || len(config.FilePath) > 0 {
 		var err error
 		config.Storage, err = filestorage.NewFileStorage(config.FilePath, config.SyncWrite)
