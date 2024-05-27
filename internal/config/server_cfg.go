@@ -94,7 +94,7 @@ func NewServerConfig() (*ServerConfig, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 		defer cancel()
 		if err = pg.DB.PingContext(ctx); err == nil {
-			err = pgstorage.DBMigration("../../migrations", pg.DB)
+			err = pgstorage.DBMigration("./migrations", pg.DB)
 			if err != nil {
 				return nil, err
 			}
