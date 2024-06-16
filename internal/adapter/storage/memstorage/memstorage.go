@@ -68,3 +68,10 @@ func (s *MemStorage) Close() error {
 func (s *MemStorage) IsConnected(ctx context.Context) error {
 	return fmt.Errorf("DB type without connection support")
 }
+
+func (s *MemStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) error {
+	for _, m := range mcs {
+		s.UpdateMetric(context.TODO(), m)
+	}
+	return nil
+}

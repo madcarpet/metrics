@@ -129,3 +129,17 @@ func (mr *MockRepositoryMockRecorder) UpdateMetric(arg0, arg1 interface{}) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetric", reflect.TypeOf((*MockRepository)(nil).UpdateMetric), arg0, arg1)
 }
+
+// UpdateMetrics mocks base method.
+func (m *MockRepository) UpdateMetrics(arg0 context.Context, arg1 []entity.Metric) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMetrics", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateMetrics indicates an expected call of UpdateMetrics.
+func (mr *MockRepositoryMockRecorder) UpdateMetrics(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetrics", reflect.TypeOf((*MockRepository)(nil).UpdateMetrics), arg0, arg1)
+}

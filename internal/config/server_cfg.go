@@ -32,10 +32,11 @@ type ServerConfig struct {
 }
 
 type Services struct {
-	Root   *metrics.GetAllMetricsSvc
-	Value  *metrics.GetMetricSvc
-	Update *metrics.UpdateMetricSvc
-	Ping   *metrics.PingSvc
+	Root    *metrics.GetAllMetricsSvc
+	Value   *metrics.GetMetricSvc
+	Update  *metrics.UpdateMetricSvc
+	Updates *metrics.UpdateMetricsSvc
+	Ping    *metrics.PingSvc
 }
 
 func NewServerConfig() (*ServerConfig, error) {
@@ -112,6 +113,7 @@ func NewServerConfig() (*ServerConfig, error) {
 	config.Root = metrics.NewGetAllMetricsSvc(config.Storage)
 	config.Value = metrics.NewGetMetricSvc(config.Storage)
 	config.Update = metrics.NewUpdateMetricSvc(config.Storage)
+	config.Updates = metrics.NewUpdateMetricsSvc(config.Storage)
 	config.Ping = metrics.NewPingSvc(config.Storage)
 	config.Router = echo.New()
 	return &config, nil
@@ -119,7 +121,7 @@ func NewServerConfig() (*ServerConfig, error) {
 
 func (sc *ServerConfig) Start() error {
 	fmt.Println(sc.FilePath, sc.StoreInterval)
-	httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Ping)
+	httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Updates, sc.Ping)
 	if sc.IsRestore {
 		err := sc.Storage.ImportFromFile()
 		if err != nil {

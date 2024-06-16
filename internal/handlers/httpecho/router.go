@@ -20,6 +20,10 @@ type valueHandlerSvc interface {
 	GetMetric(ctx context.Context, n string, t int64) (entity.Metric, error)
 }
 
+type updatesHandlerSvc interface {
+	UpdateMetrics(ctx context.Context, mcs []entity.Metric) error
+}
+
 type pingHandelerSvc interface {
 	Ping(ctx context.Context) error
 }
@@ -29,11 +33,13 @@ func SetupRouter(
 	rootSvc rootHandlerSvc,
 	valueSvc valueHandlerSvc,
 	updateSvc updateHandlerSvc,
+	updatesSvc updatesHandlerSvc,
 	pingSvc pingHandelerSvc,
 ) {
 	rootHandler := handlers.NewRootHandler(rootSvc)
 	valueHandler := handlers.NewValueHandler(valueSvc)
 	updateHandler := handlers.NewUpdateHandler(updateSvc, valueSvc)
+	updatesHandler := handlers.NewUpdatesHandler(updatesSvc, valueSvc)
 	pingHandler := handlers.NewPingHandler(context.Background(), pingSvc)
 
 	valueURLHandler := handlers.NewValueURLHandler(valueSvc)
@@ -44,6 +50,7 @@ func SetupRouter(
 	// JSON requests handling
 	e.POST("/value/", valueHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
 	e.POST("/update/", updateHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
+	e.POST("/updates/", updatesHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
 	// Requests via URL handling
 	e.GET("/value/:type/:name", valueURLHandler.Handle, middlewares.ReqRespWithLogging)
 	e.GET("/ping", pingHandler.Handle, middlewares.ReqRespWithLogging)

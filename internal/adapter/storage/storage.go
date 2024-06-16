@@ -14,4 +14,5 @@ type Repository interface {
 	ImportFromFile() error
 	Close() error
 	IsConnected(ctx context.Context) error
+	UpdateMetrics(ctx context.Context, mcs []entity.Metric) error
 }

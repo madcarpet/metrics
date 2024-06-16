@@ -71,9 +71,16 @@ func (s *PGStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
 			tx.Rollback()
 		}
 	} else {
-		_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value+em.Value, m.Name, m.Type)
-		if err != nil {
-			tx.Rollback()
+		if m.Type == entity.Counter {
+			_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value+em.Value, m.Name, m.Type)
+			if err != nil {
+				tx.Rollback()
+			}
+		} else {
+			_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value, m.Name, m.Type)
+			if err != nil {
+				tx.Rollback()
+			}
 		}
 	}
 	tx.Commit()
@@ -114,6 +121,36 @@ func (s *PGStorage) ExportToFile() error {
 }
 
 func (s *PGStorage) ImportFromFile() error {
+	return nil
+}
+
+func (s *PGStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) error {
+	tx, err := s.DB.Begin()
+	if err != nil {
+		return err
+	}
+	for _, m := range mcs {
+		em, err := s.GetByNameAndType(ctx, m.Name, m.Type)
+		if err != nil {
+			_, err = tx.ExecContext(ctx, "INSERT INTO metrics(type,name,value) VALUES ($1,$2,$3)", m.Type, m.Name, m.Value)
+			if err != nil {
+				tx.Rollback()
+			}
+		} else {
+			if m.Type == entity.Counter {
+				_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value+em.Value, m.Name, m.Type)
+				if err != nil {
+					tx.Rollback()
+				}
+			} else {
+				_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value, m.Name, m.Type)
+				if err != nil {
+					tx.Rollback()
+				}
+			}
+		}
+	}
+	tx.Commit()
 	return nil
 }
 
