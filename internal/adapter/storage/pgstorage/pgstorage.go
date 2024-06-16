@@ -69,17 +69,20 @@ func (s *PGStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
 		_, err = tx.ExecContext(ctx, "INSERT INTO metrics(type,name,value) VALUES ($1,$2,$3)", m.Type, m.Name, m.Value)
 		if err != nil {
 			tx.Rollback()
+			return err
 		}
 	} else {
 		if m.Type == entity.Counter {
 			_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value+em.Value, m.Name, m.Type)
 			if err != nil {
 				tx.Rollback()
+				return err
 			}
 		} else {
 			_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value, m.Name, m.Type)
 			if err != nil {
 				tx.Rollback()
+				return err
 			}
 		}
 	}
@@ -135,17 +138,20 @@ func (s *PGStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) erro
 			_, err = tx.ExecContext(ctx, "INSERT INTO metrics(type,name,value) VALUES ($1,$2,$3)", m.Type, m.Name, m.Value)
 			if err != nil {
 				tx.Rollback()
+				return err
 			}
 		} else {
 			if m.Type == entity.Counter {
 				_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value+em.Value, m.Name, m.Type)
 				if err != nil {
 					tx.Rollback()
+					return err
 				}
 			} else {
 				_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value, m.Name, m.Type)
 				if err != nil {
 					tx.Rollback()
+					return err
 				}
 			}
 		}
