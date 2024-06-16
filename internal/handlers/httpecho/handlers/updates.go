@@ -33,8 +33,11 @@ func NewUpdatesHandler(us updatesHandlerSvc, gs updatesHandlerGetSvc) *UpdatesHa
 }
 
 func (h *UpdatesHandler) Handle(c echo.Context) error {
+	//var for checking existance
+	existGuges := make(map[string]entity.Metric)
+	existCounters := make(map[string]entity.Metric)
 	//Var for decoding request JSON
-	var gotData []models.Metrics
+	var gotData, respData []models.Metrics
 	var updateData []entity.Metric
 
 	//Checking Content-Type header
@@ -59,6 +62,7 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 	}
 
 	//Chcking metrics is valid
+	fmt.Println(gotData)
 	for _, m := range gotData {
 		if m.ID == "" {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
@@ -76,7 +80,7 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 				Name:  m.ID,
 				Value: *m.Value,
 			}
-			updateData = append(updateData, metric)
+			existGuges[metric.Name] = metric
 		case "counter":
 			if m.Delta == nil {
 				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
@@ -87,18 +91,42 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 				Name:  m.ID,
 				Value: float64(*m.Delta),
 			}
-			updateData = append(updateData, metric)
+			if existCounter, exists := existCounters[metric.Name]; exists {
+				existCounter.Value += metric.Value
+				existCounters[metric.Name] = existCounter
+			} else {
+				existCounters[metric.Name] = metric
+			}
 		default:
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			return c.String(http.StatusBadRequest, "Bad request")
 		}
 	}
+	fmt.Println(existGuges)
+	for _, metric := range existGuges {
+		updateData = append(updateData, metric)
+		respMetric := models.Metrics{
+			ID:    metric.Name,
+			MType: "gauge",
+			Value: &metric.Value,
+		}
+		respData = append(respData, respMetric)
+	}
+	for _, metric := range existCounters {
+		updateData = append(updateData, metric)
+		newValue := int64(metric.Value)
+		respMetric := models.Metrics{
+			ID:    metric.Name,
+			MType: "counter",
+			Delta: &newValue,
+		}
+		respData = append(respData, respMetric)
+	}
 	c.Response().Header().Set("Content-Type", "application/json")
-	fmt.Println(updateData)
 	err = h.updatesSvc.UpdateMetrics(c.Request().Context(), updateData)
 	if err != nil {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusInternalServerError, "Server error")
 	}
-	return c.JSON(http.StatusOK, updateData)
+	return c.JSON(http.StatusOK, respData)
 }
