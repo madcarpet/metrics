@@ -10,7 +10,7 @@ import (
 )
 
 type rootHandlerSvc interface {
-	GetAllMetrics(ctx context.Context) []entity.Metric
+	GetAllMetrics(ctx context.Context) ([]entity.Metric, error)
 }
 
 type RootHandler struct {
@@ -19,7 +19,11 @@ type RootHandler struct {
 
 func (r *RootHandler) Handle(c echo.Context) error {
 	var output string
-	allMetrics := r.rootSvc.GetAllMetrics(c.Request().Context())
+	allMetrics, err := r.rootSvc.GetAllMetrics(c.Request().Context())
+	if err != nil {
+		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		return c.String(http.StatusInternalServerError, "Server error")
+	}
 	for _, m := range allMetrics {
 		output += fmt.Sprintf("%v: %v\n", m.Name, m.Value)
 	}

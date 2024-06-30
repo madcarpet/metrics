@@ -22,5 +22,7 @@ func TestGetAllMetrics(t *testing.T) {
 		db.UpdateMetric(context.Background(), metric)
 	}
 	getAllMetricsSvc := NewGetAllMetricsSvc(db)
-	assert.Equal(t, testMetrics, getAllMetricsSvc.GetAllMetrics(context.Background()))
+	allMetrics, err := getAllMetricsSvc.GetAllMetrics(context.Background())
+	assert.Nil(t, err)
+	assert.Equal(t, testMetrics, allMetrics)
 }

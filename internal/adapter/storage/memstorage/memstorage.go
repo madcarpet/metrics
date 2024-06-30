@@ -49,8 +49,8 @@ func (s *MemStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
 	return nil
 }
 
-func (s *MemStorage) GetAllMetrics(ctx context.Context) []entity.Metric {
-	return s.metrics
+func (s *MemStorage) GetAllMetrics(ctx context.Context) ([]entity.Metric, error) {
+	return s.metrics, nil
 }
 
 func (s *MemStorage) ExportToFile() error {

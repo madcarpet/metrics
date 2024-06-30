@@ -22,5 +22,7 @@ func TestUpdateMetric(t *testing.T) {
 	for _, metric := range testMetrics {
 		uptateMetricSvc.UpdateMetric(context.Background(), metric)
 	}
-	assert.Equal(t, testMetrics, db.GetAllMetrics(context.Background()))
+	allMetrics, err := db.GetAllMetrics(context.Background())
+	assert.Nil(t, err)
+	assert.Equal(t, testMetrics, allMetrics)
 }

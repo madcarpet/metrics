@@ -29,10 +29,15 @@ func (r retrier) Retry(ctx context.Context) error {
 		}
 		var connErr net.Error
 		if errors.As(err, &connErr) {
-			logger.Log.Info("Retry")
-			logger.Log.Info(connErr.Error())
-			if i < len(r.interval) {
-				time.Sleep(r.interval[i])
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				logger.Log.Info("Retry")
+				logger.Log.Info(connErr.Error())
+				if i < len(r.interval) {
+					time.Sleep(r.interval[i])
+				}
 			}
 		}
 	}

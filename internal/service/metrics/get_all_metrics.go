@@ -11,7 +11,7 @@ type GetAllMetricsSvc struct {
 	repo storage.Repository
 }
 
-func (s *GetAllMetricsSvc) GetAllMetrics(ctx context.Context) []entity.Metric {
+func (s *GetAllMetricsSvc) GetAllMetrics(ctx context.Context) ([]entity.Metric, error) {
 	return s.repo.GetAllMetrics(ctx)
 }
 

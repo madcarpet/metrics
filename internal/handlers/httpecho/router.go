@@ -11,7 +11,7 @@ import (
 )
 
 type rootHandlerSvc interface {
-	GetAllMetrics(ctx context.Context) []entity.Metric
+	GetAllMetrics(ctx context.Context) ([]entity.Metric, error)
 }
 type updateHandlerSvc interface {
 	UpdateMetric(ctx context.Context, m entity.Metric) error

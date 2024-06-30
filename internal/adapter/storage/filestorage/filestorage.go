@@ -52,7 +52,10 @@ func (fs *FileStorage) UpdateMetric(ctx context.Context, m entity.Metric) error 
 }
 
 func (fs *FileStorage) ExportToFile() error {
-	metrics := fs.GetAllMetrics(context.Background())
+	metrics, err := fs.GetAllMetrics(context.Background())
+	if err != nil {
+		return err
+	}
 	for _, m := range metrics {
 		data, err := json.Marshal(m)
 		if err != nil {

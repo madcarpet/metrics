@@ -9,7 +9,7 @@ import (
 type Repository interface {
 	GetByNameAndType(ctx context.Context, n string, t int64) (entity.Metric, error)
 	UpdateMetric(ctx context.Context, m entity.Metric) error
-	GetAllMetrics(ctx context.Context) []entity.Metric
+	GetAllMetrics(ctx context.Context) ([]entity.Metric, error)
 	ExportToFile() error
 	ImportFromFile() error
 	Close() error

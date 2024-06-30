@@ -28,7 +28,10 @@ func metricCollecting(pi int64, c collectService, ms []string) {
 
 func metricReporting(ri int64, r reporter) {
 	for {
-		r.ReportMetrics()
+		err := r.ReportMetrics()
+		if err != nil {
+			fmt.Println(err)
+		}
 		time.Sleep(time.Duration(ri) * time.Second)
 	}
 }

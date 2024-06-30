@@ -31,7 +31,7 @@ func NewPGStorage(Params string) (*PGStorage, error) {
 }
 
 func (s *PGStorage) IsConnected(ctx context.Context) error {
-	subCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	subCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
 		if err := s.DB.PingContext(subCtx); err != nil {
@@ -68,79 +68,11 @@ func (s *PGStorage) GetByNameAndType(ctx context.Context, n string, t int64) (en
 }
 
 func (s *PGStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
-	tx, err := s.DB.Begin()
-	if err != nil {
-		return err
-	}
-	em, err := s.GetByNameAndType(ctx, m.Name, m.Type)
-	if err != nil {
-		_, err = tx.ExecContext(ctx, "INSERT INTO metrics(type,name,value) VALUES ($1,$2,$3)", m.Type, m.Name, m.Value)
+	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
+		tx, err := s.DB.Begin()
 		if err != nil {
-			tx.Rollback()
 			return err
 		}
-	} else {
-		if m.Type == entity.Counter {
-			_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value+em.Value, m.Name, m.Type)
-			if err != nil {
-				tx.Rollback()
-				return err
-			}
-		} else {
-			_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value, m.Name, m.Type)
-			if err != nil {
-				tx.Rollback()
-				return err
-			}
-		}
-	}
-	tx.Commit()
-	return nil
-}
-
-func (s *PGStorage) GetAllMetrics(ctx context.Context) []entity.Metric {
-	allMetrics := make([]entity.Metric, 0)
-	tx, err := s.DB.Begin()
-	if err != nil {
-		return nil
-	}
-	results, err := tx.QueryContext(ctx, "SELECT type,name,value FROM metrics")
-	if err != nil {
-		tx.Rollback()
-		return nil
-	}
-	defer results.Close()
-	for results.Next() {
-		var m entity.Metric
-		err = results.Scan(&m.Type, &m.Name, &m.Value)
-		if err != nil {
-			tx.Rollback()
-			return nil
-		}
-		allMetrics = append(allMetrics, m)
-	}
-	err = results.Err()
-	if err != nil {
-		tx.Rollback()
-		return nil
-	}
-	return allMetrics
-}
-
-func (s *PGStorage) ExportToFile() error {
-	return nil
-}
-
-func (s *PGStorage) ImportFromFile() error {
-	return nil
-}
-
-func (s *PGStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) error {
-	tx, err := s.DB.Begin()
-	if err != nil {
-		return err
-	}
-	for _, m := range mcs {
 		em, err := s.GetByNameAndType(ctx, m.Name, m.Type)
 		if err != nil {
 			_, err = tx.ExecContext(ctx, "INSERT INTO metrics(type,name,value) VALUES ($1,$2,$3)", m.Type, m.Name, m.Value)
@@ -163,9 +95,86 @@ func (s *PGStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) erro
 				}
 			}
 		}
-	}
-	tx.Commit()
+		tx.Commit()
+		return nil
+	})
+	return r.Retry(ctx)
+}
+
+func (s *PGStorage) GetAllMetrics(ctx context.Context) ([]entity.Metric, error) {
+	allMetrics := make([]entity.Metric, 0)
+	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
+		tx, err := s.DB.Begin()
+		if err != nil {
+			return err
+		}
+		results, err := tx.QueryContext(ctx, "SELECT type,name,value FROM metrics")
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		defer results.Close()
+		for results.Next() {
+			var m entity.Metric
+			err = results.Scan(&m.Type, &m.Name, &m.Value)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+			allMetrics = append(allMetrics, m)
+		}
+		err = results.Err()
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		return nil
+	})
+	return allMetrics, r.Retry(ctx)
+}
+
+func (s *PGStorage) ExportToFile() error {
 	return nil
+}
+
+func (s *PGStorage) ImportFromFile() error {
+	return nil
+}
+
+func (s *PGStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) error {
+	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
+		tx, err := s.DB.Begin()
+		if err != nil {
+			return err
+		}
+		for _, m := range mcs {
+			em, err := s.GetByNameAndType(ctx, m.Name, m.Type)
+			if err != nil {
+				_, err = tx.ExecContext(ctx, "INSERT INTO metrics(type,name,value) VALUES ($1,$2,$3)", m.Type, m.Name, m.Value)
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+			} else {
+				if m.Type == entity.Counter {
+					_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value+em.Value, m.Name, m.Type)
+					if err != nil {
+						tx.Rollback()
+						return err
+					}
+				} else {
+					_, err = tx.ExecContext(ctx, "UPDATE metrics SET value = $1 WHERE name = $2 AND type = $3", m.Value, m.Name, m.Type)
+					if err != nil {
+						tx.Rollback()
+						return err
+					}
+				}
+			}
+		}
+		tx.Commit()
+		return nil
+	})
+	return r.Retry(ctx)
 }
 
 func DBMigration(path string, db *sql.DB) error {

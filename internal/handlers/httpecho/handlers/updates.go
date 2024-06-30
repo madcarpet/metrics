@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -62,7 +61,6 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 	}
 
 	//Chcking metrics is valid
-	fmt.Println(gotData)
 	for _, m := range gotData {
 		if m.ID == "" {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
@@ -102,7 +100,6 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 			return c.String(http.StatusBadRequest, "Bad request")
 		}
 	}
-	fmt.Println(existGuges)
 	for _, metric := range existGuges {
 		updateData = append(updateData, metric)
 		respMetric := models.Metrics{

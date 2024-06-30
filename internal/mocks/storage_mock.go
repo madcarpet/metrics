@@ -60,11 +60,12 @@ func (mr *MockRepositoryMockRecorder) ExportToFile() *gomock.Call {
 }
 
 // GetAllMetrics mocks base method.
-func (m *MockRepository) GetAllMetrics(arg0 context.Context) []entity.Metric {
+func (m *MockRepository) GetAllMetrics(arg0 context.Context) ([]entity.Metric, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllMetrics", arg0)
 	ret0, _ := ret[0].([]entity.Metric)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetAllMetrics indicates an expected call of GetAllMetrics.
