@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -62,8 +61,6 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 		metric, err := h.valueSvc.GetMetric(c.Request().Context(), reqData.ID, entity.Gauge)
 		if err != nil {
 			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-			//TODO: убрать
-			fmt.Println(err)
 			return c.String(http.StatusNotFound, "Metric name not found")
 		}
 		metricValue := metric.Value

@@ -10,8 +10,9 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	_ "github.com/lib/pq"
+
 	"github.com/madcarpet/metrics/internal/entity"
+	"github.com/madcarpet/metrics/internal/retry"
 )
 
 type PGStorage struct {
@@ -30,12 +31,16 @@ func NewPGStorage(Params string) (*PGStorage, error) {
 }
 
 func (s *PGStorage) IsConnected(ctx context.Context) error {
-	subCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	subCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	if err := s.DB.PingContext(subCtx); err != nil {
-		return err
-	}
-	return nil
+	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
+		if err := s.DB.PingContext(subCtx); err != nil {
+			fmt.Println(err)
+			return err
+		}
+		return nil
+	})
+	return r.Retry(subCtx)
 }
 
 func (s *PGStorage) Close() error {
@@ -44,19 +49,22 @@ func (s *PGStorage) Close() error {
 
 func (s *PGStorage) GetByNameAndType(ctx context.Context, n string, t int64) (entity.Metric, error) {
 	var m entity.Metric
-	tx, err := s.DB.Begin()
-	if err != nil {
-		return entity.Metric{}, err
-	}
-	resp := tx.QueryRowContext(ctx, "SELECT type,name,value FROM metrics WHERE type = $1 AND name = $2", t, n)
+	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
+		tx, err := s.DB.Begin()
+		if err != nil {
+			return err
+		}
+		resp := tx.QueryRowContext(ctx, "SELECT type,name,value FROM metrics WHERE type = $1 AND name = $2", t, n)
 
-	err = resp.Scan(&m.Type, &m.Name, &m.Value)
-	if err != nil {
-		tx.Rollback()
-		return entity.Metric{}, err
-	}
-	tx.Commit()
-	return m, nil
+		err = resp.Scan(&m.Type, &m.Name, &m.Value)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		tx.Commit()
+		return nil
+	})
+	return m, r.Retry(ctx)
 }
 
 func (s *PGStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
