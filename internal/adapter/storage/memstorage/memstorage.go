@@ -65,7 +65,7 @@ func (s *MemStorage) Close() error {
 	return nil
 }
 
-func (s *MemStorage) IsConnected(ctx context.Context) error {
+func (s *MemStorage) IsConnected(_ context.Context) error {
 	return fmt.Errorf("DB type without connection support")
 }
 

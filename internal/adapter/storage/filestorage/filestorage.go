@@ -103,6 +103,6 @@ func (fs *FileStorage) Close() error {
 	return nil
 }
 
-func (fs *FileStorage) IsConnected(ctx context.Context) error {
+func (fs *FileStorage) IsConnected(_ context.Context) error {
 	return fmt.Errorf("DB type without connection support")
 }

@@ -37,7 +37,6 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 	existCounters := make(map[string]entity.Metric)
 	//Var for decoding request JSON
 	var gotData, respData []models.Metrics
-	var updateData []entity.Metric
 
 	//Checking Content-Type header
 	appHeader := c.Request().Header.Get("Content-Type")
@@ -100,6 +99,7 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 			return c.String(http.StatusBadRequest, "Bad request")
 		}
 	}
+	updateData := make([]entity.Metric, 0, len(existGuges)+len(existCounters))
 	for _, metric := range existGuges {
 		updateData = append(updateData, metric)
 		respMetric := models.Metrics{

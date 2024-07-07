@@ -13,11 +13,10 @@ type pingHandelerSvc interface {
 
 type PingHandler struct {
 	pingSvc pingHandelerSvc
-	ctx     context.Context
 }
 
 func (h *PingHandler) Handle(c echo.Context) error {
-	err := h.pingSvc.Ping(h.ctx)
+	err := h.pingSvc.Ping(c.Request().Context())
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "500 Internal Server Error")
 	}
@@ -25,5 +24,5 @@ func (h *PingHandler) Handle(c echo.Context) error {
 }
 
 func NewPingHandler(ctx context.Context, s pingHandelerSvc) *PingHandler {
-	return &PingHandler{pingSvc: s, ctx: ctx}
+	return &PingHandler{pingSvc: s}
 }
