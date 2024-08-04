@@ -5,7 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -35,13 +34,8 @@ func (sw *signedWriter) WriteHeader(statusCode int) {
 func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		key := os.Getenv("SECRET_KEY")
-		fmt.Println(key, "<-------------KEY in SERVER") // TODO убрать
-		// reqHeadSign := c.Request().Header.Values("HashSHA256")
 		reqHeadSign := c.Request().Header.Get("HashSHA256")
-		fmt.Println(reqHeadSign)
-		if reqHeadSign == "" {
-			return c.String(http.StatusBadRequest, "Bad request, no sign")
-		} else {
+		if reqHeadSign != "" {
 			body, err := io.ReadAll(c.Request().Body)
 			defer c.Request().Body.Close()
 			if err != nil {
@@ -49,8 +43,6 @@ func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 				return c.String(http.StatusInternalServerError, "Server error")
 			}
 			reqCalcSign := signatory(body, key)
-			fmt.Println("got:", reqHeadSign)
-			fmt.Println("calculated:", reqCalcSign)
 			if reqHeadSign != reqCalcSign {
 				return c.String(http.StatusBadRequest, "Bad request, invalid sign")
 			}
