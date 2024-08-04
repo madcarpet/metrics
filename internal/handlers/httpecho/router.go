@@ -35,6 +35,7 @@ func SetupRouter(
 	updateSvc updateHandlerSvc,
 	updatesSvc updatesHandlerSvc,
 	pingSvc pingHandelerSvc,
+	dataSign bool,
 ) {
 	rootHandler := handlers.NewRootHandler(rootSvc)
 	valueHandler := handlers.NewValueHandler(valueSvc)
@@ -45,15 +46,24 @@ func SetupRouter(
 	valueURLHandler := handlers.NewValueURLHandler(valueSvc)
 	updateURLHandler := handlers.NewUpdateURLHandler(updateSvc)
 
+	var mwList []echo.MiddlewareFunc
+
+	if dataSign {
+		mwList = []echo.MiddlewareFunc{middlewares.ReqRespWithLogging, middlewares.GzipCompression, middlewares.SignData}
+	} else {
+		mwList = []echo.MiddlewareFunc{middlewares.ReqRespWithLogging, middlewares.GzipCompression}
+	}
+
 	// Root handling
-	e.GET("/", rootHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
+	e.GET("/", rootHandler.Handle, mwList...)
 	// JSON requests handling
-	e.POST("/value/", valueHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
-	e.POST("/update/", updateHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
-	e.POST("/updates/", updatesHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
+	e.POST("/value/", valueHandler.Handle, mwList...)
+	e.POST("/update/", updateHandler.Handle, mwList...)
+	e.POST("/updates/", updatesHandler.Handle, mwList...)
 	// Requests via URL handling
 	e.GET("/value/:type/:name", valueURLHandler.Handle, middlewares.ReqRespWithLogging)
-	e.GET("/ping", pingHandler.Handle, middlewares.ReqRespWithLogging)
+	//Ping DB
+	e.GET("/ping", pingHandler.Handle, mwList...)
 	e.POST("/update/:type/", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusNotFound, "Metric name not found")
@@ -62,7 +72,7 @@ func SetupRouter(
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
 		return c.String(http.StatusNotFound, "Metric name not found")
 	}, middlewares.ReqRespWithLogging)
-	e.POST("/update/:type/:name/:value", updateURLHandler.Handle, middlewares.ReqRespWithLogging, middlewares.GzipCompression)
+	e.POST("/update/:type/:name/:value", updateURLHandler.Handle, mwList...)
 	// Any handling
 	e.Any("/*", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")

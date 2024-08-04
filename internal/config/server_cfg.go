@@ -27,6 +27,7 @@ type ServerConfig struct {
 	IsRestore     bool
 	Storage       storage.Repository
 	DBUrl         string
+	Key           string
 	Services
 	Router *echo.Echo
 }
@@ -47,6 +48,7 @@ func NewServerConfig() (*ServerConfig, error) {
 	flag.StringVar(&config.FilePath, "f", "/tmp/metrics-db.json", "Path to store server data")
 	flag.BoolVar(&config.IsRestore, "r", false, "Restore DB from file")
 	flag.StringVar(&config.DBUrl, "d", "", "DB Url or params in DSN format")
+	flag.StringVar(&config.Key, "k", "", "Key for data signature")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		return nil, errors.New("entered unknown args")
@@ -110,6 +112,11 @@ func NewServerConfig() (*ServerConfig, error) {
 	} else {
 		config.Storage = memstorage.NewMemStorage()
 	}
+
+	if keyEnv := os.Getenv("KEY"); keyEnv != "" {
+		config.Key = keyEnv
+	}
+
 	config.Root = metrics.NewGetAllMetricsSvc(config.Storage)
 	config.Value = metrics.NewGetMetricSvc(config.Storage)
 	config.Update = metrics.NewUpdateMetricSvc(config.Storage)
@@ -121,7 +128,15 @@ func NewServerConfig() (*ServerConfig, error) {
 
 func (sc *ServerConfig) Start() error {
 	fmt.Println(sc.FilePath, sc.StoreInterval)
-	httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Updates, sc.Ping)
+	if sc.Key != "" {
+		err := os.Setenv("SECRET_KEY", sc.Key)
+		if err != nil {
+			return err
+		}
+		httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Updates, sc.Ping, true)
+	} else {
+		httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Updates, sc.Ping, false)
+	}
 	if sc.IsRestore {
 		err := sc.Storage.ImportFromFile()
 		if err != nil {

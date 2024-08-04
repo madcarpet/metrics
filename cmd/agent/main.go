@@ -73,7 +73,14 @@ func main() {
 	}
 	db := memstorage.NewMemStorage()
 	collectorSvc := metrics.NewCollectorSvc(db)
-	reporter := http.NewReporter(serverAddress, db)
+	var ds bool
+	if secretKey != "" {
+		ds = true
+		os.Setenv("CLIENT_SECRET_KEY", secretKey)
+	} else {
+		ds = false
+	}
+	reporter := http.NewReporter(serverAddress, db, ds)
 	go metricCollecting(pollInterval, collectorSvc, ms)
 	go metricReporting(reportInterval, reporter)
 	fmt.Printf("Agent started\nReporting to: %s\nPollInterval: %d\nReportInterval: %d\n", serverAddress, pollInterval, reportInterval)

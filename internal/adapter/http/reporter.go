@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/madcarpet/metrics/internal/adapter/storage"
 	"github.com/madcarpet/metrics/internal/entity"
@@ -14,13 +18,21 @@ import (
 	"github.com/madcarpet/metrics/internal/retry"
 )
 
+func signatory(data []byte, secretKey string) string {
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write(data)
+	sign := h.Sum(nil)
+	return hex.EncodeToString(sign)
+}
+
 type reporter struct {
 	serverAddress string
 	repo          storage.Repository
+	dataSign      bool
 }
 
-func NewReporter(sa string, r storage.Repository) *reporter {
-	return &reporter{serverAddress: sa, repo: r}
+func NewReporter(sa string, r storage.Repository, ds bool) *reporter {
+	return &reporter{serverAddress: sa, repo: r, dataSign: ds}
 }
 
 func (r *reporter) ReportMetrics() error {
@@ -75,10 +87,15 @@ func (r *reporter) ReportMetrics() error {
 		req.Header.Set("Content-Encoding", "gzip")
 		req.Header.Set("Accept-Encoding", "gzip")
 
+		if r.dataSign {
+			key := os.Getenv("CLIENT_SECRET_KEY")
+			sign := signatory(jsonBody, key)
+			req.Header.Set("HashSHA256", sign)
+		}
+
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return err
-			// return fmt.Errorf("http request sendig error: %s", err)
 		}
 		defer resp.Body.Close()
 		return nil

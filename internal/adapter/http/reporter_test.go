@@ -28,7 +28,7 @@ func TestReporter(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(handler))
 	defer server.Close()
-	reporter := NewReporter(server.URL[7:], db)
+	reporter := NewReporter(server.URL[7:], db, false)
 	err := reporter.ReportMetrics()
 	assert.Nil(t, err)
 

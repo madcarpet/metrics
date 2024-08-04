@@ -41,7 +41,7 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 	err = json.Unmarshal(body, &reqData)
 	if err != nil {
 		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusBadRequest, "Bad request")
+		return c.String(http.StatusBadRequest, "Bad request, could not unmarshal")
 	}
 
 	//Chcking id not emtpy
