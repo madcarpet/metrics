@@ -37,6 +37,7 @@ func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 		key := os.Getenv("SECRET_KEY")
 		fmt.Println(key, "<-------------KEY in SERVER") // TODO убрать
 		reqHeadSign := c.Request().Header.Values("HashSHA256")
+		fmt.Println(reqHeadSign)
 		if len(reqHeadSign) == 0 || len(reqHeadSign) > 1 {
 			return c.String(http.StatusBadRequest, "Bad request, no sign")
 		} else {
