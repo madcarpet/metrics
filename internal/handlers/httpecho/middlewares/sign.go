@@ -35,9 +35,9 @@ func (sw *signedWriter) WriteHeader(statusCode int) {
 func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		key := os.Getenv("SECRET_KEY")
+		fmt.Println(key, "<-------------KEY in SERVER") // TODO убрать
 		reqHeadSign := c.Request().Header.Values("HashSHA256")
 		if len(reqHeadSign) == 0 || len(reqHeadSign) > 1 {
-			c.Response().Header().Set("Content-Type", "application/json")
 			return c.String(http.StatusBadRequest, "Bad request, no sign")
 		} else {
 			body, err := io.ReadAll(c.Request().Body)
@@ -50,7 +50,6 @@ func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 			fmt.Println("got:", reqHeadSign[0])
 			fmt.Println("calculated:", reqCalcSign)
 			if reqHeadSign[0] != reqCalcSign {
-				c.Response().Header().Set("Content-Type", "application/json")
 				return c.String(http.StatusBadRequest, "Bad request, invalid sign")
 			}
 			c.Request().Body = io.NopCloser(bytes.NewBuffer(body))

@@ -89,6 +89,7 @@ func (r *reporter) ReportMetrics() error {
 
 		if r.dataSign {
 			key := os.Getenv("CLIENT_SECRET_KEY")
+			fmt.Println(key, "<-------------KEY in AGENT") // TODO убрать
 			sign := signatory(jsonBody, key)
 			req.Header.Set("HashSHA256", sign)
 		}
