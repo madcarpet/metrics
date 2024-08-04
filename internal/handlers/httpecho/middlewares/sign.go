@@ -36,9 +36,10 @@ func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		key := os.Getenv("SECRET_KEY")
 		fmt.Println(key, "<-------------KEY in SERVER") // TODO убрать
-		reqHeadSign := c.Request().Header.Values("HashSHA256")
+		// reqHeadSign := c.Request().Header.Values("HashSHA256")
+		reqHeadSign := c.Request().Header.Get("HashSHA256")
 		fmt.Println(reqHeadSign)
-		if len(reqHeadSign) == 0 || len(reqHeadSign) > 1 {
+		if reqHeadSign == "" {
 			return c.String(http.StatusBadRequest, "Bad request, no sign")
 		} else {
 			body, err := io.ReadAll(c.Request().Body)
@@ -48,9 +49,9 @@ func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 				return c.String(http.StatusInternalServerError, "Server error")
 			}
 			reqCalcSign := signatory(body, key)
-			fmt.Println("got:", reqHeadSign[0])
+			fmt.Println("got:", reqHeadSign)
 			fmt.Println("calculated:", reqCalcSign)
-			if reqHeadSign[0] != reqCalcSign {
+			if reqHeadSign != reqCalcSign {
 				return c.String(http.StatusBadRequest, "Bad request, invalid sign")
 			}
 			c.Request().Body = io.NopCloser(bytes.NewBuffer(body))
