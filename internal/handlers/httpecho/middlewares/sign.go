@@ -28,9 +28,6 @@ func (sw *signedWriter) Write(d []byte) (int, error) {
 	return sw.writer.Write(d)
 }
 
-func (sw *signedWriter) WriteHeader(statusCode int) {
-}
-
 func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		key := os.Getenv("SECRET_KEY")
@@ -56,10 +53,16 @@ func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			return err
 		}
+
+		nextStatus := c.Response().Status
+
 		sign := signatory(respBody.Bytes(), key)
+
 		c.Response().Writer = sw.ResponseWriter
 		c.Response().Header().Set("HashSHA256", sign)
-		_, err = c.Response().Writer.Write(respBody.Bytes())
+		c.Response().Committed = false
+		c.Response().Status = nextStatus
+		c.Response().Write(respBody.Bytes())
 		return err
 	}
 }
