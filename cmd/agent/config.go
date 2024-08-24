@@ -12,13 +12,16 @@ var reportInterval int64
 var pollInterval int64
 var secretKey string
 
+var rateLimit int64
+
 // function to parse args from cli or environment vars
 func parseFlags() error {
-	var errRprtInterval, errPollInterval error
+	var errRprtInterval, errPollInterval, errRateLimit error
 	flag.StringVar(&serverAddress, "a", "localhost:8080", "Server address to connect to")
 	flag.Int64Var(&reportInterval, "r", 10, "Interval to report metrics")
 	flag.Int64Var(&pollInterval, "p", 2, "Interval to poll metrics")
 	flag.StringVar(&secretKey, "k", "", "Key for data signature")
+	flag.Int64Var(&rateLimit, "l", 1, "Concurrent send rate limit")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		return errors.New("entered unknown args")
@@ -29,17 +32,23 @@ func parseFlags() error {
 	if envRprtInterval := os.Getenv("REPORT_INTERVAL"); envRprtInterval != "" {
 		reportInterval, errRprtInterval = strconv.ParseInt(envRprtInterval, 10, 64)
 		if errRprtInterval != nil {
-			return errors.New("bad REPORT_INTERVAL variable")
+			return errors.New("bad REPORT_INTERVAL parameter")
 		}
 	}
 	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
 		pollInterval, errPollInterval = strconv.ParseInt(envPollInterval, 10, 64)
 		if errPollInterval != nil {
-			return errors.New("bad POLL_INTERVAL variable")
+			return errors.New("bad POLL_INTERVAL parameter")
 		}
 	}
 	if envSecretKey := os.Getenv("KEY"); envSecretKey != "" {
 		secretKey = envSecretKey
+	}
+	if envRateLimit := os.Getenv("RATE_LIMIT"); envRateLimit != "" {
+		rateLimit, errRateLimit = strconv.ParseInt(envRateLimit, 10, 64)
+		if errRateLimit != nil {
+			return errors.New("bad RATE_LIMIT parameter")
+		}
 	}
 	return nil
 }

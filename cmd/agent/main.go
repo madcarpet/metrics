@@ -1,17 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/madcarpet/metrics/internal/adapter/dispenser"
 	"github.com/madcarpet/metrics/internal/adapter/http"
 	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
+	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
 type reporter interface {
-	ReportMetrics() error
+	ReportMetrics(metrics []entity.Metric) error
 }
 
 type collectService interface {
@@ -26,14 +29,12 @@ func metricCollecting(pi int64, c collectService, ms []string) {
 
 }
 
-func metricReporting(ri int64, r reporter) {
-	for {
-		err := r.ReportMetrics()
-		if err != nil {
-			fmt.Println(err)
-		}
-		time.Sleep(time.Duration(ri) * time.Second)
+func worker(n int, rpt reporter, chIn <-chan []entity.Metric) {
+	fmt.Printf("worker #%d started\n", n)
+	for metric := range chIn {
+		rpt.ReportMetrics(metric)
 	}
+	fmt.Printf("worker #%d finished\n", n)
 }
 
 func main() {
@@ -71,8 +72,15 @@ func main() {
 		"Sys",
 		"TotalAlloc",
 	}
+	mn := []string{
+		"TotalMemory",
+		"FreeMemory",
+		"CPUutilization",
+	}
+	comCh := make(chan []entity.Metric)
 	db := memstorage.NewMemStorage()
 	collectorSvc := metrics.NewCollectorSvc(db)
+	perfCollectorSvc := metrics.NewPerCollectorSvc(db)
 	var ds bool
 	if secretKey != "" {
 		ds = true
@@ -80,9 +88,15 @@ func main() {
 	} else {
 		ds = false
 	}
-	reporter := http.NewReporter(serverAddress, db, ds)
+	reporter := http.NewReporter(serverAddress, ds)
+	disp := dispenser.NewMetricDispenser(db, comCh)
 	go metricCollecting(pollInterval, collectorSvc, ms)
-	go metricReporting(reportInterval, reporter)
+	go metricCollecting(pollInterval, perfCollectorSvc, mn)
+	for i := 1; i < int(rateLimit)+1; i++ {
+		go worker(i, reporter, comCh)
+	}
+	go disp.Dispense(context.Background(), reportInterval)
+
 	fmt.Printf("Agent started\nReporting to: %s\nPollInterval: %d\nReportInterval: %d\n", serverAddress, pollInterval, reportInterval)
 	select {}
 }

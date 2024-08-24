@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/madcarpet/metrics/internal/adapter/storage"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/models"
 	"github.com/madcarpet/metrics/internal/retry"
@@ -27,22 +26,17 @@ func signatory(data []byte, secretKey string) string {
 
 type reporter struct {
 	serverAddress string
-	repo          storage.Repository
 	dataSign      bool
 }
 
-func NewReporter(sa string, r storage.Repository, ds bool) *reporter {
-	return &reporter{serverAddress: sa, repo: r, dataSign: ds}
+func NewReporter(sa string, ds bool) *reporter {
+	return &reporter{serverAddress: sa, dataSign: ds}
 }
 
-func (r *reporter) ReportMetrics() error {
+func (r *reporter) ReportMetrics(metrics []entity.Metric) error {
 	rt := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
 		var finalReqData []models.Metrics
 		var body bytes.Buffer
-		metrics, err := r.repo.GetAllMetrics(ctx)
-		if err != nil {
-			return err
-		}
 		for _, metric := range metrics {
 			var reqData models.Metrics
 			switch metric.Type {
