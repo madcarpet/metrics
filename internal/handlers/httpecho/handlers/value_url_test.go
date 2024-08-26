@@ -6,11 +6,13 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/madcarpet/metrics/internal/storage"
+	"github.com/madcarpet/metrics/internal/adapter/memstorage"
+	"github.com/madcarpet/metrics/internal/entity"
+	"github.com/madcarpet/metrics/internal/service/metrics"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValueHandler(t *testing.T) {
+func TestValueURLHanler(t *testing.T) {
 	type want struct {
 		code        int
 		contentType string
@@ -24,7 +26,7 @@ func TestValueHandler(t *testing.T) {
 	}{
 		{
 			name:   "Test GET correct gauge 1.114112e+06",
-			url:    "http://localhost:8080/value/gauge/TestGCSys",
+			url:    "http://localhost:8080/value/gauge/TestGauge1",
 			method: http.MethodGet,
 			want: want{
 				code:        http.StatusOK,
@@ -34,7 +36,7 @@ func TestValueHandler(t *testing.T) {
 		},
 		{
 			name:   "Test GET correct gauge 879464",
-			url:    "http://localhost:8080/value/gauge/TestAlloc",
+			url:    "http://localhost:8080/value/gauge/TestGauge2",
 			method: http.MethodGet,
 			want: want{
 				code:        http.StatusOK,
@@ -44,7 +46,7 @@ func TestValueHandler(t *testing.T) {
 		},
 		{
 			name:   "Test GET correct gauge 0.8230922114274958",
-			url:    "http://localhost:8080/value/gauge/TestRandomValue",
+			url:    "http://localhost:8080/value/gauge/TestGauge3",
 			method: http.MethodGet,
 			want: want{
 				code:        http.StatusOK,
@@ -54,7 +56,7 @@ func TestValueHandler(t *testing.T) {
 		},
 		{
 			name:   "Test correct counter value",
-			url:    "http://localhost:8080/value/counter/TestPollCount",
+			url:    "http://localhost:8080/value/counter/TestCounter1",
 			method: http.MethodGet,
 			want: want{
 				code:        http.StatusOK,
@@ -93,31 +95,27 @@ func TestValueHandler(t *testing.T) {
 			},
 		},
 	}
-	// db := storage.MemStorage{
-	// 	Gauges: map[string]float64{
-	// 		"TestGCSys":       1.114112e+06,
-	// 		"TestAlloc":       879464,
-	// 		"TestRandomValue": 0.8230922114274958,
-	// 	},
-	// 	Counters: map[string]int64{
-	// 		"TestPollCount": 188,
-	// 	},
-	// }
-	db := storage.NewMemStorage()
-	db.Gauges = map[string]float64{
-		"TestGCSys":       1.114112e+06,
-		"TestAlloc":       879464,
-		"TestRandomValue": 0.8230922114274958,
+	db := memstorage.NewMemStorage()
+	testMetrics := []entity.Metric{
+		{Name: "TestGauge1", Type: entity.Gauge, Value: 1.114112e+06},
+		{Name: "TestGauge2", Type: entity.Gauge, Value: 879464},
+		{Name: "TestGauge3", Type: entity.Gauge, Value: 0.8230922114274958},
+		{Name: "TestCounter1", Type: entity.Counter, Value: 188},
+		{Name: "TestCounter2", Type: entity.Counter, Value: 991112111111},
+		{Name: "TestCounter3", Type: entity.Counter, Value: 0},
 	}
-	db.Counters = map[string]int64{
-		"TestPollCount": 188,
+
+	for _, m := range testMetrics {
+		db.UpdateMetric(m)
 	}
+
+	e := echo.New()
+	valueSvc := metrics.NewGetMetricSvc(db)
+	valueURLHandler := NewValueURLHandler(valueSvc)
+	e.GET("/value/:type/:name", valueURLHandler.Handle)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			e := echo.New()
-			h := NewHandler(db)
-			e.GET("/value/:type/:name", h.Value)
 			req := httptest.NewRequest(test.method, test.url, nil)
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
@@ -125,6 +123,7 @@ func TestValueHandler(t *testing.T) {
 			assert.Equal(t, test.want.code, rec.Code)
 			assert.Equal(t, test.want.contentType, rec.Header().Get("Content-Type"))
 			assert.Equal(t, test.want.body, rec.Body.String())
+
 		},
 		)
 	}
