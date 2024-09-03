@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -14,7 +13,6 @@ import (
 	"github.com/madcarpet/metrics/internal/adapter/storage/filestorage"
 	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
 	"github.com/madcarpet/metrics/internal/adapter/storage/pgstorage"
-	"github.com/madcarpet/metrics/internal/handlers/httpecho"
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
@@ -124,45 +122,4 @@ func NewServerConfig() (*ServerConfig, error) {
 	config.Ping = metrics.NewPingSvc(config.Storage)
 	config.Router = echo.New()
 	return &config, nil
-}
-
-func (sc *ServerConfig) Start(ctx context.Context) error {
-	fmt.Println(sc.FilePath, sc.StoreInterval)
-	if sc.Key != "" {
-		err := os.Setenv("SECRET_KEY", sc.Key)
-		if err != nil {
-			return err
-		}
-		httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Updates, sc.Ping, true)
-	} else {
-		httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Updates, sc.Ping, false)
-	}
-	if sc.IsRestore {
-		err := sc.Storage.ImportFromFile(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	if sc.StoreInterval > 0 && sc.FilePath != "" {
-		go func() {
-			for {
-				sc.Storage.ExportToFile(ctx)
-				time.Sleep(time.Duration(sc.StoreInterval) * time.Second)
-			}
-		}()
-	}
-	go sc.Router.Start(sc.ServerAddress)
-	return nil
-}
-
-func (sc *ServerConfig) Stop(ctx context.Context) error {
-	err := sc.Storage.ExportToFile(ctx)
-	if err != nil {
-		return err
-	}
-	err = sc.Storage.Close()
-	if err != nil {
-		return err
-	}
-	return nil
 }
