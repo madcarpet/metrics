@@ -133,11 +133,11 @@ func (s *PGStorage) GetAllMetrics(ctx context.Context) ([]entity.Metric, error) 
 	return allMetrics, r.Retry(ctx)
 }
 
-func (s *PGStorage) ExportToFile() error {
+func (s *PGStorage) ExportToFile(_ context.Context) error {
 	return nil
 }
 
-func (s *PGStorage) ImportFromFile() error {
+func (s *PGStorage) ImportFromFile(_ context.Context) error {
 	return nil
 }
 

@@ -46,17 +46,17 @@ func (mr *MockRepositoryMockRecorder) Close() *gomock.Call {
 }
 
 // ExportToFile mocks base method.
-func (m *MockRepository) ExportToFile() error {
+func (m *MockRepository) ExportToFile(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExportToFile")
+	ret := m.ctrl.Call(m, "ExportToFile", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ExportToFile indicates an expected call of ExportToFile.
-func (mr *MockRepositoryMockRecorder) ExportToFile() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ExportToFile(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportToFile", reflect.TypeOf((*MockRepository)(nil).ExportToFile))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportToFile", reflect.TypeOf((*MockRepository)(nil).ExportToFile), arg0)
 }
 
 // GetAllMetrics mocks base method.
@@ -90,17 +90,17 @@ func (mr *MockRepositoryMockRecorder) GetByNameAndType(arg0, arg1, arg2 interfac
 }
 
 // ImportFromFile mocks base method.
-func (m *MockRepository) ImportFromFile() error {
+func (m *MockRepository) ImportFromFile(arg0 context.Context) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ImportFromFile")
+	ret := m.ctrl.Call(m, "ImportFromFile", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ImportFromFile indicates an expected call of ImportFromFile.
-func (mr *MockRepositoryMockRecorder) ImportFromFile() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ImportFromFile(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportFromFile", reflect.TypeOf((*MockRepository)(nil).ImportFromFile))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportFromFile", reflect.TypeOf((*MockRepository)(nil).ImportFromFile), arg0)
 }
 
 // IsConnected mocks base method.

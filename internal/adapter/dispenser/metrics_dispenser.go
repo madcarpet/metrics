@@ -21,12 +21,13 @@ func NewMetricDispenser(r storage.Repository, ch chan []entity.Metric) *metricsD
 }
 
 func (d *metricsDispenser) Dispense(ctx context.Context, ri int64) error {
+	tick := time.NewTicker(time.Duration(ri) * time.Second)
 	for {
 		metrics, err := d.repo.GetAllMetrics(ctx)
 		if err != nil {
 			return err
 		}
 		d.outCh <- metrics
-		time.Sleep(time.Duration(ri) * time.Second)
+		<-tick.C
 	}
 }

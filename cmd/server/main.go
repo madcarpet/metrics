@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/madcarpet/metrics/internal/app"
 	"github.com/madcarpet/metrics/internal/config"
 	"github.com/madcarpet/metrics/internal/logger"
 )
@@ -19,7 +21,7 @@ func main() {
 
 	serverConfig, err := config.NewServerConfig()
 	if err != nil {
-		fmt.Printf("Server starting error: %v\n", err)
+		fmt.Printf("Server config preparing error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -27,16 +29,21 @@ func main() {
 	defer logger.Log.Sync()
 
 	logger.Log.Info("Server starting")
-	serverConfig.Start()
 
+	aplication := app.NewApp(serverConfig)
+	err = aplication.AppStart(context.Background())
+	if err != nil {
+		fmt.Printf("Server starting error: %v\n", err)
+		os.Exit(1)
+	}
 	//handle channels
 	select {
 	case stop := <-sigChan:
 		fmt.Printf("Server stopping, recieved signal: %v\n", stop)
-		serverConfig.Stop()
+		aplication.AppStop(context.Background())
 	case err := <-errChan:
 		if err != nil {
-			fmt.Printf("Server starting error: %v\n", err)
+			fmt.Printf("Server got error: %v\n", err)
 			os.Exit(1)
 		}
 

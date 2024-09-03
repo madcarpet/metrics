@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/madcarpet/metrics/internal/adapter/dispenser"
@@ -14,30 +16,42 @@ import (
 )
 
 type reporter interface {
-	ReportMetrics(metrics []entity.Metric) error
+	ReportMetrics(ctx context.Context, metrics []entity.Metric) error
 }
 
 type collectService interface {
 	Collect(ms []string) error
 }
 
-func metricCollecting(pi int64, c collectService, ms []string) {
+func metricCollecting(dch <-chan struct{}, pi int64, c collectService, ms []string) {
+	tick := time.NewTicker(time.Duration(pi) * time.Second)
 	for {
-		c.Collect(ms)
-		time.Sleep(time.Duration(pi) * time.Second)
+		select {
+		case <-dch:
+			return
+		case <-tick.C:
+			c.Collect(ms)
+		}
 	}
 
 }
 
-func worker(n int, rpt reporter, chIn <-chan []entity.Metric) {
+func worker(ctx context.Context, n int, rpt reporter, chIn <-chan []entity.Metric) {
 	fmt.Printf("worker #%d started\n", n)
 	for metric := range chIn {
-		rpt.ReportMetrics(metric)
+		rpt.ReportMetrics(ctx, metric)
 	}
 	fmt.Printf("worker #%d finished\n", n)
 }
 
 func main() {
+	doneChan := make(chan struct{})
+	//create channels for error and stopping
+	sigChan := make(chan os.Signal, 1)
+	errChan := make(chan error)
+	//register system signals with channels
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
 	err := parseFlags()
 	if err != nil {
 		fmt.Println(err)
@@ -84,19 +98,28 @@ func main() {
 	var ds bool
 	if secretKey != "" {
 		ds = true
-		os.Setenv("CLIENT_SECRET_KEY", secretKey)
 	} else {
 		ds = false
 	}
-	reporter := http.NewReporter(serverAddress, ds)
+	reporter := http.NewReporter(serverAddress, ds, secretKey)
 	disp := dispenser.NewMetricDispenser(db, comCh)
-	go metricCollecting(pollInterval, collectorSvc, ms)
-	go metricCollecting(pollInterval, perfCollectorSvc, mn)
+	go metricCollecting(doneChan, pollInterval, collectorSvc, ms)
+	go metricCollecting(doneChan, pollInterval, perfCollectorSvc, mn)
 	for i := 1; i < int(rateLimit)+1; i++ {
-		go worker(i, reporter, comCh)
+		go worker(context.Background(), i, reporter, comCh)
 	}
 	go disp.Dispense(context.Background(), reportInterval)
 
 	fmt.Printf("Agent started\nReporting to: %s\nPollInterval: %d\nReportInterval: %d\n", serverAddress, pollInterval, reportInterval)
-	select {}
+	select {
+	case stop := <-sigChan:
+		fmt.Printf("Server stopping, recieved signal: %v\n", stop)
+		close(doneChan)
+	case err := <-errChan:
+		if err != nil {
+			fmt.Printf("Server got error: %v\n", err)
+			close(doneChan)
+		}
+
+	}
 }

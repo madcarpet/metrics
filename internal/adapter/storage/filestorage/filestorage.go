@@ -43,7 +43,7 @@ func (fs *FileStorage) UpdateMetric(ctx context.Context, m entity.Metric) error 
 		return err
 	}
 	if fs.syncmode {
-		err := fs.ExportToFile()
+		err := fs.ExportToFile(ctx)
 		if err != nil {
 			return err
 		}
@@ -51,8 +51,8 @@ func (fs *FileStorage) UpdateMetric(ctx context.Context, m entity.Metric) error 
 	return nil
 }
 
-func (fs *FileStorage) ExportToFile() error {
-	metrics, err := fs.GetAllMetrics(context.Background())
+func (fs *FileStorage) ExportToFile(ctx context.Context) error {
+	metrics, err := fs.GetAllMetrics(ctx)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (fs *FileStorage) ExportToFile() error {
 	return nil
 }
 
-func (fs *FileStorage) ImportFromFile() error {
+func (fs *FileStorage) ImportFromFile(ctx context.Context) error {
 	for fs.scanner.Scan() {
 		data := fs.scanner.Bytes()
 		metric := entity.Metric{}
@@ -84,7 +84,7 @@ func (fs *FileStorage) ImportFromFile() error {
 		if err != nil {
 			return err
 		}
-		err = fs.UpdateMetric(context.Background(), metric)
+		err = fs.UpdateMetric(ctx, metric)
 		if err != nil {
 			return err
 		}

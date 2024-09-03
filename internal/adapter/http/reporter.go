@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/models"
@@ -27,13 +26,14 @@ func signatory(data []byte, secretKey string) string {
 type reporter struct {
 	serverAddress string
 	dataSign      bool
+	key           string
 }
 
-func NewReporter(sa string, ds bool) *reporter {
-	return &reporter{serverAddress: sa, dataSign: ds}
+func NewReporter(sa string, ds bool, sk string) *reporter {
+	return &reporter{serverAddress: sa, dataSign: ds, key: sk}
 }
 
-func (r *reporter) ReportMetrics(metrics []entity.Metric) error {
+func (r *reporter) ReportMetrics(ctx context.Context, metrics []entity.Metric) error {
 	rt := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
 		var finalReqData []models.Metrics
 		var body bytes.Buffer
@@ -82,8 +82,7 @@ func (r *reporter) ReportMetrics(metrics []entity.Metric) error {
 		req.Header.Set("Accept-Encoding", "gzip")
 
 		if r.dataSign {
-			key := os.Getenv("CLIENT_SECRET_KEY")
-			sign := signatory(jsonBody, key)
+			sign := signatory(jsonBody, r.key)
 			req.Header.Set("HashSHA256", sign)
 		}
 
@@ -94,5 +93,5 @@ func (r *reporter) ReportMetrics(metrics []entity.Metric) error {
 		defer resp.Body.Close()
 		return nil
 	})
-	return rt.Retry(context.Background())
+	return rt.Retry(ctx)
 }

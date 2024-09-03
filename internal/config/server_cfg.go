@@ -126,7 +126,7 @@ func NewServerConfig() (*ServerConfig, error) {
 	return &config, nil
 }
 
-func (sc *ServerConfig) Start() error {
+func (sc *ServerConfig) Start(ctx context.Context) error {
 	fmt.Println(sc.FilePath, sc.StoreInterval)
 	if sc.Key != "" {
 		err := os.Setenv("SECRET_KEY", sc.Key)
@@ -138,7 +138,7 @@ func (sc *ServerConfig) Start() error {
 		httpecho.SetupRouter(sc.Router, sc.Root, sc.Value, sc.Update, sc.Updates, sc.Ping, false)
 	}
 	if sc.IsRestore {
-		err := sc.Storage.ImportFromFile()
+		err := sc.Storage.ImportFromFile(ctx)
 		if err != nil {
 			return err
 		}
@@ -146,7 +146,7 @@ func (sc *ServerConfig) Start() error {
 	if sc.StoreInterval > 0 && sc.FilePath != "" {
 		go func() {
 			for {
-				sc.Storage.ExportToFile()
+				sc.Storage.ExportToFile(ctx)
 				time.Sleep(time.Duration(sc.StoreInterval) * time.Second)
 			}
 		}()
@@ -155,8 +155,8 @@ func (sc *ServerConfig) Start() error {
 	return nil
 }
 
-func (sc *ServerConfig) Stop() error {
-	err := sc.Storage.ExportToFile()
+func (sc *ServerConfig) Stop(ctx context.Context) error {
+	err := sc.Storage.ExportToFile(ctx)
 	if err != nil {
 		return err
 	}

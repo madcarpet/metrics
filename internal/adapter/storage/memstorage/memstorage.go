@@ -11,6 +11,7 @@ import (
 type MemStorage struct {
 	metrics []entity.Metric
 	mutex   sync.Mutex
+	rmutex  sync.RWMutex
 }
 
 func NewMemStorage() *MemStorage {
@@ -21,6 +22,8 @@ func NewMemStorage() *MemStorage {
 }
 
 func (s *MemStorage) GetByNameAndType(ctx context.Context, n string, t int64) (entity.Metric, error) {
+	s.rmutex.RLock()
+	defer s.rmutex.RUnlock()
 	for _, m := range s.metrics {
 		if m.Type == t && m.Name == n {
 			return m, nil
@@ -53,11 +56,11 @@ func (s *MemStorage) GetAllMetrics(ctx context.Context) ([]entity.Metric, error)
 	return s.metrics, nil
 }
 
-func (s *MemStorage) ExportToFile() error {
+func (s *MemStorage) ExportToFile(_ context.Context) error {
 	return nil
 }
 
-func (s *MemStorage) ImportFromFile() error {
+func (s *MemStorage) ImportFromFile(_ context.Context) error {
 	return nil
 }
 
@@ -66,12 +69,12 @@ func (s *MemStorage) Close() error {
 }
 
 func (s *MemStorage) IsConnected(_ context.Context) error {
-	return fmt.Errorf("DB type without connection support")
+	return fmt.Errorf("storage type without connection support")
 }
 
 func (s *MemStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) error {
 	for _, m := range mcs {
-		s.UpdateMetric(context.TODO(), m)
+		s.UpdateMetric(ctx, m)
 	}
 	return nil
 }
