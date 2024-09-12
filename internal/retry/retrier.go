@@ -51,10 +51,6 @@ func (r retrier) Retry(ctx context.Context) error {
 }
 
 func NewRetrier(r int, i int, fn func(ctx context.Context) error) *retrier {
-	var intervals []time.Duration
-	switch i {
-	default:
-		intervals = []time.Duration{1 * time.Second, 3 * time.Second, 5 * time.Second}
-	}
+	intervals := []time.Duration{1 * time.Second, 3 * time.Second, 5 * time.Second}
 	return &retrier{r, intervals, fn}
 }
