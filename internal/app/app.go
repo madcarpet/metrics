@@ -8,6 +8,8 @@ import (
 
 	"github.com/madcarpet/metrics/internal/config"
 	"github.com/madcarpet/metrics/internal/handlers/httpecho"
+	"github.com/madcarpet/metrics/internal/logger"
+	"go.uber.org/zap"
 )
 
 type App struct {
@@ -38,14 +40,25 @@ func (a *App) AppStart(ctx context.Context) error {
 		}
 	}
 	if a.cfg.StoreInterval > 0 && a.cfg.FilePath != "" {
-		go func() {
+		go func() error {
 			for {
-				a.cfg.Storage.ExportToFile(ctx)
+				err := a.cfg.Storage.ExportToFile(ctx)
+				if err != nil {
+					logger.Log.Error("error exporting to file", zap.Error(err))
+					return err
+				}
 				time.Sleep(time.Duration(a.cfg.StoreInterval) * time.Second)
 			}
 		}()
 	}
-	go a.cfg.Router.Start(a.cfg.ServerAddress)
+	go func() error {
+		err := a.cfg.Router.Start(a.cfg.ServerAddress)
+		if err != nil {
+			logger.Log.Error("router start error", zap.Error(err))
+			return err
+		}
+		return nil
+	}()
 	return nil
 }
 

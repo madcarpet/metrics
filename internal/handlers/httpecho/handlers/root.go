@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/constants"
 	"github.com/madcarpet/metrics/internal/entity"
 )
 
@@ -21,7 +22,7 @@ func (r *RootHandler) Handle(c echo.Context) error {
 	var output string
 	allMetrics, err := r.rootSvc.GetAllMetrics(c.Request().Context())
 	if err != nil {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusInternalServerError, "Server error")
 	}
 	for _, m := range allMetrics {

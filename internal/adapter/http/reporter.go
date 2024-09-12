@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/madcarpet/metrics/internal/constants"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/models"
 	"github.com/madcarpet/metrics/internal/retry"
@@ -45,7 +46,7 @@ func (r *reporter) ReportMetrics(ctx context.Context, metrics []entity.Metric) e
 				mVal := metric.Value
 				reqData = models.Metrics{
 					ID:    mName,
-					MType: "gauge",
+					MType: constants.GaugeType,
 					Value: &mVal,
 				}
 			case entity.Counter:
@@ -53,7 +54,7 @@ func (r *reporter) ReportMetrics(ctx context.Context, metrics []entity.Metric) e
 				metricDelta := int64(metric.Value)
 				reqData = models.Metrics{
 					ID:    mName,
-					MType: "counter",
+					MType: constants.CounterType,
 					Delta: &metricDelta,
 				}
 			}
@@ -77,7 +78,7 @@ func (r *reporter) ReportMetrics(ctx context.Context, metrics []entity.Metric) e
 		if err != nil {
 			return fmt.Errorf("request formation error: %s", err)
 		}
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", constants.ContentTypeJSON)
 		req.Header.Set("Content-Encoding", "gzip")
 		req.Header.Set("Accept-Encoding", "gzip")
 

@@ -85,8 +85,8 @@ func NewServerConfig() (*ServerConfig, error) {
 	if dbURL := os.Getenv("DATABASE_DSN"); dbURL != "" {
 		config.DBUrl = dbURL
 	}
-
-	if config.DBUrl != "" {
+	switch {
+	case config.DBUrl != "":
 		var err error
 		pg, err := pgstorage.NewPGStorage(config.DBUrl)
 		if err != nil {
@@ -101,13 +101,13 @@ func NewServerConfig() (*ServerConfig, error) {
 			}
 		}
 		config.Storage = pg
-	} else if config.IsRestore || len(config.FilePath) > 0 {
+	case config.IsRestore || len(config.FilePath) > 0:
 		var err error
 		config.Storage, err = filestorage.NewFileStorage(config.FilePath, config.SyncWrite)
 		if err != nil {
 			return nil, err
 		}
-	} else {
+	default:
 		config.Storage = memstorage.NewMemStorage()
 	}
 

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/constants"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/models"
 )
@@ -32,44 +33,47 @@ func NewUpdatesHandler(us updatesHandlerSvc, gs updatesHandlerGetSvc) *UpdatesHa
 }
 
 func (h *UpdatesHandler) Handle(c echo.Context) error {
-	//var for checking existance
+
+	//Var for decoding request JSON
 	existGuges := make(map[string]entity.Metric)
 	existCounters := make(map[string]entity.Metric)
-	//Var for decoding request JSON
-	var gotData, respData []models.Metrics
+	var gotData []models.Metrics
 
 	//Checking Content-Type header
 	appHeader := c.Request().Header.Get("Content-Type")
-	if appHeader != "application/json" {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	if appHeader != constants.ContentTypeJSON {
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 	//Reading body
 	body, err := io.ReadAll(c.Request().Body)
 	defer c.Request().Body.Close()
 	if err != nil {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusInternalServerError, "Server error")
 	}
 
 	//Decoding body data
 	err = json.Unmarshal(body, &gotData)
 	if err != nil {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
+
+	//var for checking existance
+	respData := make([]models.Metrics, 0, len(gotData))
 
 	//Chcking metrics is valid
 	for _, m := range gotData {
 		if m.ID == "" {
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusNotFound, "Metric name not found for some metrics")
 		}
 		//Dealing data, depending on type
 		switch m.MType {
-		case "gauge":
+		case constants.GaugeType:
 			if m.Value == nil {
-				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+				c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 				return c.String(http.StatusBadRequest, "Bad request")
 			}
 			metric := entity.Metric{
@@ -78,9 +82,9 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 				Value: *m.Value,
 			}
 			existGuges[metric.Name] = metric
-		case "counter":
+		case constants.CounterType:
 			if m.Delta == nil {
-				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+				c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 				return c.String(http.StatusBadRequest, "Bad request")
 			}
 			metric := entity.Metric{
@@ -95,16 +99,16 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 				existCounters[metric.Name] = metric
 			}
 		default:
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusBadRequest, "Bad request")
 		}
 	}
-	updateData := make([]entity.Metric, 0, len(existGuges)+len(existCounters))
+	updateData := make([]entity.Metric, 0, len(gotData))
 	for _, metric := range existGuges {
 		updateData = append(updateData, metric)
 		respMetric := models.Metrics{
 			ID:    metric.Name,
-			MType: "gauge",
+			MType: constants.GaugeType,
 			Value: &metric.Value,
 		}
 		respData = append(respData, respMetric)
@@ -114,15 +118,15 @@ func (h *UpdatesHandler) Handle(c echo.Context) error {
 		newValue := int64(metric.Value)
 		respMetric := models.Metrics{
 			ID:    metric.Name,
-			MType: "counter",
+			MType: constants.CounterType,
 			Delta: &newValue,
 		}
 		respData = append(respData, respMetric)
 	}
-	c.Response().Header().Set("Content-Type", "application/json")
+	c.Response().Header().Set("Content-Type", constants.ContentTypeJSON)
 	err = h.updatesSvc.UpdateMetrics(c.Request().Context(), updateData)
 	if err != nil {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusInternalServerError, "Server error")
 	}
 	return c.JSON(http.StatusOK, respData)

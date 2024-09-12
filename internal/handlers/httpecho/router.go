@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/constants"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/handlers/httpecho/handlers"
 	"github.com/madcarpet/metrics/internal/handlers/httpecho/middlewares"
@@ -65,17 +66,17 @@ func SetupRouter(
 	//Ping DB
 	e.GET("/ping", pingHandler.Handle, mwList...)
 	e.POST("/update/:type/", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusNotFound, "Metric name not found")
 	}, middlewares.ReqRespWithLogging)
 	e.POST("/update/:type/:value", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusNotFound, "Metric name not found")
 	}, middlewares.ReqRespWithLogging)
 	e.POST("/update/:type/:name/:value", updateURLHandler.Handle, mwList...)
 	// Any handling
 	e.Any("/*", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}, middlewares.ReqRespWithLogging)
 }

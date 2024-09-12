@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/constants"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/models"
 )
@@ -24,8 +25,8 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 	var reqData models.Metrics
 
 	appHeader := c.Request().Header.Get("Content-Type")
-	if appHeader != "application/json" {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	if appHeader != constants.ContentTypeJSON {
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 
@@ -33,50 +34,50 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 	body, err := io.ReadAll(c.Request().Body)
 	defer c.Request().Body.Close()
 	if err != nil {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusInternalServerError, "Server error")
 	}
 
 	//Decoding body data
 	err = json.Unmarshal(body, &reqData)
 	if err != nil {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request, could not unmarshal")
 	}
 
 	//Chcking id not emtpy
 	if reqData.ID == "" {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusNotFound, "Metric name not found")
 	}
 
 	if reqData.MType == "" {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 	//Dealing request depending on type
-	c.Response().Header().Set("Content-Type", "application/json")
+	c.Response().Header().Set("Content-Type", constants.ContentTypeJSON)
 	switch reqData.MType {
-	case "gauge":
+	case constants.GaugeType:
 		metric, err := h.valueSvc.GetMetric(c.Request().Context(), reqData.ID, entity.Gauge)
 		if err != nil {
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusNotFound, "Metric name not found")
 		}
 		metricValue := metric.Value
 		reqData.Value = &metricValue
 		return c.JSON(http.StatusOK, reqData)
-	case "counter":
+	case constants.CounterType:
 		metric, err := h.valueSvc.GetMetric(c.Request().Context(), reqData.ID, entity.Counter)
 		if err != nil {
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusNotFound, "Metric name not found")
 		}
 		metricValue := int64(metric.Value)
 		reqData.Delta = &metricValue
 		return c.JSON(http.StatusOK, reqData)
 	default:
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 }

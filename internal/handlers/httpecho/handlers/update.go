@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/constants"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/models"
 )
@@ -29,38 +30,38 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 	var updateData models.Metrics
 	//Checking Content-Type header
 	appHeader := c.Request().Header.Get("Content-Type")
-	if appHeader != "application/json" {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	if appHeader != constants.ContentTypeJSON {
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 	//Reading body
 	body, err := io.ReadAll(c.Request().Body)
 	defer c.Request().Body.Close()
 	if err != nil {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusInternalServerError, "Server error")
 	}
 
 	//Decoding body data
 	err = json.Unmarshal(body, &updateData)
 	if err != nil {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 
 	//Chcking id not emtpy
 	if updateData.ID == "" {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusNotFound, "Metric name not found")
 	}
 
-	c.Response().Header().Set("Content-Type", "application/json")
+	c.Response().Header().Set("Content-Type", constants.ContentTypeJSON)
 
 	//Dealing data, depending on type
 	switch updateData.MType {
-	case "gauge":
+	case constants.GaugeType:
 		if updateData.Value == nil {
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusBadRequest, "Bad request")
 		}
 		metric := entity.Metric{
@@ -70,13 +71,13 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 		}
 		err = h.updateSvc.UpdateMetric(c.Request().Context(), metric)
 		if err != nil {
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusInternalServerError, "Server error")
 		}
 		return c.JSON(http.StatusOK, updateData)
-	case "counter":
+	case constants.CounterType:
 		if updateData.Delta == nil {
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusBadRequest, "Bad request")
 		}
 		metric := entity.Metric{
@@ -86,12 +87,12 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 		}
 		err = h.updateSvc.UpdateMetric(c.Request().Context(), metric)
 		if err != nil {
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusInternalServerError, "Server error")
 		}
 		currMetric, err := h.getSvc.GetMetric(c.Request().Context(), updateData.ID, entity.Counter)
 		if err != nil {
-			c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+			c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 			return c.String(http.StatusInternalServerError, "Server error")
 		}
 		newValue := int64(currMetric.Value)
@@ -99,7 +100,7 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 		return c.JSON(http.StatusOK, updateData)
 
 	default:
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 }

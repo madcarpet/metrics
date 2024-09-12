@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/constants"
 )
 
 // New writer with custom Writer(with gzip) for switch in c.Response().Writer
@@ -51,7 +52,7 @@ func GzipCompression(next echo.HandlerFunc) echo.HandlerFunc {
 			//gzip Reader
 			rgz, err := gzip.NewReader(c.Request().Body)
 			if err != nil {
-				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+				c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 				return c.String(http.StatusInternalServerError, "Server error")
 			}
 			defer rgz.Close()

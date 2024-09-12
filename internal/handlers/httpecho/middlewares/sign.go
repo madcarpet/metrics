@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+	"github.com/madcarpet/metrics/internal/constants"
 )
 
 func signatory(data []byte, secretKey string) string {
@@ -36,7 +37,7 @@ func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 			body, err := io.ReadAll(c.Request().Body)
 			defer c.Request().Body.Close()
 			if err != nil {
-				c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
+				c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 				return c.String(http.StatusInternalServerError, "Server error")
 			}
 			reqCalcSign := signatory(body, key)

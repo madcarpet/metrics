@@ -21,7 +21,7 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
-func (s *MemStorage) GetByNameAndType(ctx context.Context, n string, t int64) (entity.Metric, error) {
+func (s *MemStorage) GetByNameAndType(_ context.Context, n string, t int64) (entity.Metric, error) {
 	s.rmutex.RLock()
 	defer s.rmutex.RUnlock()
 	for _, m := range s.metrics {
@@ -32,7 +32,7 @@ func (s *MemStorage) GetByNameAndType(ctx context.Context, n string, t int64) (e
 	return entity.Metric{}, fmt.Errorf("metric %s not found", n)
 }
 
-func (s *MemStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
+func (s *MemStorage) UpdateMetric(_ context.Context, m entity.Metric) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if len(s.metrics) > 0 {
@@ -52,7 +52,7 @@ func (s *MemStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
 	return nil
 }
 
-func (s *MemStorage) GetAllMetrics(ctx context.Context) ([]entity.Metric, error) {
+func (s *MemStorage) GetAllMetrics(_ context.Context) ([]entity.Metric, error) {
 	return s.metrics, nil
 }
 
