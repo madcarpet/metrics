@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	echopprof "github.com/hiko1129/echo-pprof"
 	"github.com/labstack/echo/v4"
 	"github.com/madcarpet/metrics/internal/constants"
 	"github.com/madcarpet/metrics/internal/entity"
@@ -79,4 +80,5 @@ func SetupRouter(
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}, middlewares.ReqRespWithLogging)
+	echopprof.Wrap(e)
 }

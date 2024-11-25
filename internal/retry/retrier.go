@@ -3,7 +3,6 @@ package retry
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net"
 	"time"
 
@@ -17,7 +16,7 @@ const (
 
 type retrier struct {
 	retries  int
-	interval []time.Duration
+	interval time.Duration
 	fn       func(ctx context.Context) error
 }
 
@@ -26,23 +25,21 @@ func (r retrier) Retry(ctx context.Context) error {
 	if err == nil {
 		return nil
 	}
-	fmt.Println("InRrtry")
 	var connErr net.Error
 	if errors.As(err, &connErr) {
-		for i := 0; i < r.retries; i++ {
-			fmt.Println("Retrying")
+		for i := 1; i < r.retries; i++ {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
 				logger.Log.Info("Retry")
 				logger.Log.Info(connErr.Error())
-				if i < len(r.interval) {
-					time.Sleep(r.interval[i])
-				}
 				err = r.fn(ctx)
 				if err == nil {
 					return nil
+				}
+				if i != r.retries {
+					time.Sleep(r.interval)
 				}
 			}
 		}
@@ -51,6 +48,6 @@ func (r retrier) Retry(ctx context.Context) error {
 }
 
 func NewRetrier(r int, i int, fn func(ctx context.Context) error) *retrier {
-	intervals := []time.Duration{1 * time.Second, 3 * time.Second, 5 * time.Second}
-	return &retrier{r, intervals, fn}
+	interval := time.Duration(i) * time.Second
+	return &retrier{r, interval, fn}
 }
