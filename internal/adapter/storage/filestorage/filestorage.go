@@ -12,6 +12,7 @@ import (
 	"github.com/madcarpet/metrics/internal/entity"
 )
 
+// FileStorage - structure for storage based on filesystem.
 type FileStorage struct {
 	*memstorage.MemStorage
 	file     *os.File
@@ -21,6 +22,7 @@ type FileStorage struct {
 	mutex    sync.Mutex
 }
 
+// NewFileStorage creates a new FileStorage.
 func NewFileStorage(fileName string, syncmode bool) (*FileStorage, error) {
 	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -37,6 +39,7 @@ func NewFileStorage(fileName string, syncmode bool) (*FileStorage, error) {
 	}, nil
 }
 
+// UpdateMetric - updates metric data in storage.
 func (fs *FileStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
 	err := fs.MemStorage.UpdateMetric(ctx, m)
 	if err != nil {
@@ -51,6 +54,7 @@ func (fs *FileStorage) UpdateMetric(ctx context.Context, m entity.Metric) error 
 	return nil
 }
 
+// ExportToFile - exports all metrics to file.
 func (fs *FileStorage) ExportToFile(ctx context.Context) error {
 	metrics, err := fs.GetAllMetrics(ctx)
 	if err != nil {
@@ -76,6 +80,7 @@ func (fs *FileStorage) ExportToFile(ctx context.Context) error {
 	return nil
 }
 
+// ImportFromFile - imports metrics data from file.
 func (fs *FileStorage) ImportFromFile(ctx context.Context) error {
 	for fs.scanner.Scan() {
 		data := fs.scanner.Bytes()
@@ -95,6 +100,7 @@ func (fs *FileStorage) ImportFromFile(ctx context.Context) error {
 	return nil
 }
 
+// Close - closes file that was opened with filestorage.
 func (fs *FileStorage) Close() error {
 	err := fs.file.Close()
 	if err != nil {
@@ -103,6 +109,7 @@ func (fs *FileStorage) Close() error {
 	return nil
 }
 
+// IsConnected not supported, exists just becouse common interface.
 func (fs *FileStorage) IsConnected(_ context.Context) error {
 	return fmt.Errorf("DB type without connection support")
 }

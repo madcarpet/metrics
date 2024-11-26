@@ -14,7 +14,7 @@ var secretKey string
 
 var rateLimit int64
 
-// function to parse args from cli or environment vars
+// parseFlags function parses command line flags and environment variables for configuration settings.
 func parseFlags() error {
 	var errRprtInterval, errPollInterval, errRateLimit error
 	flag.StringVar(&serverAddress, "a", "localhost:8080", "Server address to connect to")

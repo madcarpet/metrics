@@ -15,14 +15,17 @@ import (
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
+// reporter - interface with a method `ReportMetrics` to report metrics to http server.
 type reporter interface {
 	ReportMetrics(ctx context.Context, metrics []entity.Metric) error
 }
 
+// collectService - interface with a method `Collect` to collect metrics system metrics.
 type collectService interface {
 	Collect(ms []string) error
 }
 
+// metricCollecting - function that realize collecting metrics with selected interval.
 func metricCollecting(dch <-chan struct{}, pi int64, c collectService, ms []string) {
 	tick := time.NewTicker(time.Duration(pi) * time.Second)
 	for {
@@ -36,6 +39,7 @@ func metricCollecting(dch <-chan struct{}, pi int64, c collectService, ms []stri
 
 }
 
+// worker - function that realize worker to parallelize metric reporting process.
 func worker(ctx context.Context, n int, rpt reporter, chIn <-chan []entity.Metric) {
 	fmt.Printf("worker #%d started\n", n)
 	for metric := range chIn {
@@ -46,10 +50,10 @@ func worker(ctx context.Context, n int, rpt reporter, chIn <-chan []entity.Metri
 
 func main() {
 	doneChan := make(chan struct{})
-	//create channels for error and stopping
+	// create channels for error and stopping.
 	sigChan := make(chan os.Signal, 1)
 	errChan := make(chan error)
-	//register system signals with channels
+	// register system signals with channels.
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	err := parseFlags()

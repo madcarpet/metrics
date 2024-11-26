@@ -10,14 +10,24 @@ import (
 	"github.com/madcarpet/metrics/internal/entity"
 )
 
+// updateURLHandlerSvc interface for updating metric service.
 type updateURLHandlerSvc interface {
 	UpdateMetric(ctx context.Context, m entity.Metric) error
 }
 
+// UpdateURLHandler struct for updating metric with url handler, keeps update service.
 type UpdateURLHandler struct {
 	updateSvc updateHandlerSvc
 }
 
+// NewUpdateURLHandler creates a new update URL handler.
+func NewUpdateURLHandler(s updateURLHandlerSvc) *UpdateURLHandler {
+	return &UpdateURLHandler{
+		updateSvc: s,
+	}
+}
+
+// Handle handles http request.
 func (h *UpdateURLHandler) Handle(c echo.Context) error {
 	mType := c.Param("type")
 	mName := c.Param("name")
@@ -64,11 +74,5 @@ func (h *UpdateURLHandler) Handle(c echo.Context) error {
 		return c.String(http.StatusOK, "Metric updated")
 	default:
 		return c.String(http.StatusBadRequest, "Bad request")
-	}
-}
-
-func NewUpdateURLHandler(s updateURLHandlerSvc) *UpdateURLHandler {
-	return &UpdateURLHandler{
-		updateSvc: s,
 	}
 }

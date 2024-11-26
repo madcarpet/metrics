@@ -12,29 +12,41 @@ import (
 	"github.com/madcarpet/metrics/internal/models"
 )
 
+// updateHandlerSvc interface with method to update metric in storage.
 type updateHandlerSvc interface {
 	UpdateMetric(ctx context.Context, m entity.Metric) error
 }
 
+// updateHandlerGetSvc interface with method to get metric from storage.
 type updateHandlerGetSvc interface {
 	GetMetric(ctx context.Context, n string, t int64) (entity.Metric, error)
 }
 
+// UpdateHandler struct keeps services for updating and getting metric data.
 type UpdateHandler struct {
 	updateSvc updateHandlerSvc
 	getSvc    updateHandlerGetSvc
 }
 
+// NewUpdateHandler creates a new UpdateHandler.
+func NewUpdateHandler(us updateHandlerSvc, gs updateHandlerGetSvc) *UpdateHandler {
+	return &UpdateHandler{
+		updateSvc: us,
+		getSvc:    gs,
+	}
+}
+
+// Handle handles http request.
 func (h *UpdateHandler) Handle(c echo.Context) error {
-	//Var for decoding request JSON
+	// Var for decoding request JSON.
 	var updateData models.Metrics
-	//Checking Content-Type header
+	// Checking Content-Type header.
 	appHeader := c.Request().Header.Get("Content-Type")
 	if appHeader != constants.ContentTypeJSON {
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
-	//Reading body
+	// Reading body.
 	body, err := io.ReadAll(c.Request().Body)
 	defer c.Request().Body.Close()
 	if err != nil {
@@ -42,14 +54,14 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Server error")
 	}
 
-	//Decoding body data
+	// Decoding body data.
 	err = json.Unmarshal(body, &updateData)
 	if err != nil {
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 
-	//Chcking id not emtpy
+	// Checking id not emtpy.
 	if updateData.ID == "" {
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusNotFound, "Metric name not found")
@@ -57,7 +69,7 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 
 	c.Response().Header().Set("Content-Type", constants.ContentTypeJSON)
 
-	//Dealing data, depending on type
+	// Dealing data, depending on type.
 	switch updateData.MType {
 	case constants.GaugeType:
 		if updateData.Value == nil {
@@ -102,12 +114,5 @@ func (h *UpdateHandler) Handle(c echo.Context) error {
 	default:
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
-	}
-}
-
-func NewUpdateHandler(us updateHandlerSvc, gs updateHandlerGetSvc) *UpdateHandler {
-	return &UpdateHandler{
-		updateSvc: us,
-		getSvc:    gs,
 	}
 }

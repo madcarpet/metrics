@@ -15,10 +15,12 @@ import (
 	"github.com/madcarpet/metrics/internal/retry"
 )
 
+// PGStorage struct for pgSQL database.
 type PGStorage struct {
 	DB *sql.DB
 }
 
+// NewPGStorage creates a new PGStorage.
 func NewPGStorage(Params string) (*PGStorage, error) {
 	db, err := sql.Open("pgx", Params)
 	if err != nil {
@@ -30,6 +32,27 @@ func NewPGStorage(Params string) (*PGStorage, error) {
 	}, nil
 }
 
+// DBMigration migration function for database.
+func DBMigration(path string, db *sql.DB) error {
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://"+path,
+		"postgres", driver)
+	if err != nil {
+		return err
+	}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+
+	fmt.Println("Migrations applied successfully!")
+	return nil
+}
+
+// IsConnected checks is database alive.
 func (s *PGStorage) IsConnected(ctx context.Context) error {
 	subCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
@@ -43,10 +66,12 @@ func (s *PGStorage) IsConnected(ctx context.Context) error {
 	return r.Retry(subCtx)
 }
 
+// Close - closes database.
 func (s *PGStorage) Close() error {
 	return s.DB.Close()
 }
 
+// GetByNameAndType retrieves metric by name and type from database.
 func (s *PGStorage) GetByNameAndType(ctx context.Context, n string, t int64) (entity.Metric, error) {
 	var m entity.Metric
 	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
@@ -67,6 +92,7 @@ func (s *PGStorage) GetByNameAndType(ctx context.Context, n string, t int64) (en
 	return m, r.Retry(ctx)
 }
 
+// UpdateMetric updates a metric in the database.
 func (s *PGStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
 	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
 		tx, err := s.DB.Begin()
@@ -101,6 +127,7 @@ func (s *PGStorage) UpdateMetric(ctx context.Context, m entity.Metric) error {
 	return r.Retry(ctx)
 }
 
+// GetAllMetrics retrieves all metrics from the database.
 func (s *PGStorage) GetAllMetrics(ctx context.Context) ([]entity.Metric, error) {
 	allMetrics := make([]entity.Metric, 0)
 	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
@@ -133,14 +160,17 @@ func (s *PGStorage) GetAllMetrics(ctx context.Context) ([]entity.Metric, error) 
 	return allMetrics, r.Retry(ctx)
 }
 
+// ExportToFile not supported, exists just because common interface.
 func (s *PGStorage) ExportToFile(_ context.Context) error {
 	return nil
 }
 
+// ExportToFile not supported, exists just because common interface.
 func (s *PGStorage) ImportFromFile(_ context.Context) error {
 	return nil
 }
 
+// UpdateMetrics updates metrics in database (BUTCH)
 func (s *PGStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) error {
 	r := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
 		tx, err := s.DB.Begin()
@@ -175,23 +205,4 @@ func (s *PGStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) erro
 		return nil
 	})
 	return r.Retry(ctx)
-}
-
-func DBMigration(path string, db *sql.DB) error {
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		return err
-	}
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://"+path,
-		"postgres", driver)
-	if err != nil {
-		return err
-	}
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		return err
-	}
-
-	fmt.Println("Migrations applied successfully!")
-	return nil
 }

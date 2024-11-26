@@ -17,6 +17,7 @@ import (
 	"github.com/madcarpet/metrics/internal/retry"
 )
 
+// signatory - function to get hash from data with signature.
 func signatory(data []byte, secretKey string) string {
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write(data)
@@ -24,17 +25,21 @@ func signatory(data []byte, secretKey string) string {
 	return hex.EncodeToString(sign)
 }
 
+// reporter - structure for metric reporter.
 type reporter struct {
 	serverAddress string
 	dataSign      bool
 	key           string
 }
 
+// NewReporter - metric reporter constructor.
 func NewReporter(sa string, ds bool, sk string) *reporter {
 	return &reporter{serverAddress: sa, dataSign: ds, key: sk}
 }
 
+// ReportMetrics - function to report metrics to server by HTTP.
 func (r *reporter) ReportMetrics(ctx context.Context, metrics []entity.Metric) error {
+	// retry construction if server not available (network timeouts).
 	rt := retry.NewRetrier(retry.DefaultRetry, retry.Interval2s, func(ctx context.Context) error {
 		var finalReqData []models.Metrics
 		var body bytes.Buffer
@@ -60,6 +65,7 @@ func (r *reporter) ReportMetrics(ctx context.Context, metrics []entity.Metric) e
 			}
 			finalReqData = append(finalReqData, reqData)
 		}
+		// serialize data for request.
 		jsonBody, err := json.Marshal(&finalReqData)
 		if err != nil {
 			return fmt.Errorf("report encoding error: %s", err)

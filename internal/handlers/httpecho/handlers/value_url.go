@@ -10,14 +10,24 @@ import (
 	"github.com/madcarpet/metrics/internal/entity"
 )
 
+// valueURLHandlerSvc interface with method to get metric data.
 type valueURLHandlerSvc interface {
 	GetMetric(ctx context.Context, n string, t int64) (entity.Metric, error)
 }
 
+// ValueURLHandler struct for handler, keeps value service.
 type ValueURLHandler struct {
 	valueSvc valueHandlerSvc
 }
 
+// NewValueURLHandler creates a new ValueURLHandler.
+func NewValueURLHandler(s valueURLHandlerSvc) *ValueURLHandler {
+	return &ValueURLHandler{
+		valueSvc: s,
+	}
+}
+
+// Handle handles http request.
 func (h *ValueURLHandler) Handle(c echo.Context) error {
 	mType := c.Param("type")
 	mName := c.Param("name")
@@ -39,10 +49,4 @@ func (h *ValueURLHandler) Handle(c echo.Context) error {
 	}
 	return c.String(http.StatusBadRequest, "Bad request")
 
-}
-
-func NewValueURLHandler(s valueURLHandlerSvc) *ValueURLHandler {
-	return &ValueURLHandler{
-		valueSvc: s,
-	}
 }

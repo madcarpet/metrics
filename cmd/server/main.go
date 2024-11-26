@@ -13,10 +13,10 @@ import (
 )
 
 func main() {
-	//create channels for error and stopping
+	// create channels for error and stopping.
 	sigChan := make(chan os.Signal, 1)
 	errChan := make(chan error)
-	//register system signals with channels
+	// register system signals with channels.
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	serverConfig, err := config.NewServerConfig()
@@ -36,7 +36,7 @@ func main() {
 		fmt.Printf("Server starting error: %v\n", err)
 		os.Exit(1)
 	}
-	//handle channels
+	// handle channels.
 	select {
 	case stop := <-sigChan:
 		fmt.Printf("Server stopping, recieved signal: %v\n", stop)

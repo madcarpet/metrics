@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestRootHandler
 func TestRootHandler(t *testing.T) {
 	type want struct {
 		code        int

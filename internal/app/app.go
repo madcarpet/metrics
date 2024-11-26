@@ -12,16 +12,19 @@ import (
 	"go.uber.org/zap"
 )
 
+// App struct for app functionality, contains configuration.
 type App struct {
 	cfg *config.ServerConfig
 }
 
+// NewApp creates a new App.
 func NewApp(c *config.ServerConfig) *App {
 	return &App{
 		cfg: c,
 	}
 }
 
+// AppStart starts the app according to the configuration parameters.
 func (a *App) AppStart(ctx context.Context) error {
 	fmt.Println(a.cfg.FilePath, a.cfg.StoreInterval)
 	if a.cfg.Key != "" {
@@ -62,6 +65,7 @@ func (a *App) AppStart(ctx context.Context) error {
 	return nil
 }
 
+// AppStop stops the app.
 func (a *App) AppStop(ctx context.Context) error {
 	err := a.cfg.Storage.ExportToFile(ctx)
 	if err != nil {

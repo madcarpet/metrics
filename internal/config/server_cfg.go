@@ -16,6 +16,7 @@ import (
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
+// ServerConfig struct to keep main application parameters.
 type ServerConfig struct {
 	ServerAddress string
 	LoggingLevel  string
@@ -38,14 +39,22 @@ type Services struct {
 	Ping    *metrics.PingSvc
 }
 
+// NewServerConfig creates server configuration.
 func NewServerConfig() (*ServerConfig, error) {
 	config := ServerConfig{}
+	// server address.
 	flag.StringVar(&config.ServerAddress, "a", "localhost:8080", "Address server listen to")
+	// server logging level.
 	flag.StringVar(&config.LoggingLevel, "l", "info", "Logging level")
+	// interval to store metrics.
 	flag.Int64Var(&config.StoreInterval, "i", 300, "Store interval")
+	// path to store server data.
 	flag.StringVar(&config.FilePath, "f", "/tmp/metrics-db.json", "Path to store server data")
+	// flag is nessesary to restore DB from file.
 	flag.BoolVar(&config.IsRestore, "r", false, "Restore DB from file")
+	// DB address in DSN format.
 	flag.StringVar(&config.DBUrl, "d", "", "DB Url or params in DSN format")
+	// secret key for signature.
 	flag.StringVar(&config.Key, "k", "", "Key for data signature")
 	flag.Parse()
 	if len(flag.Args()) > 0 {

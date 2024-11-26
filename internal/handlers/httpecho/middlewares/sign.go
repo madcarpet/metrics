@@ -13,6 +13,7 @@ import (
 	"github.com/madcarpet/metrics/internal/constants"
 )
 
+// signatory function to get hash from data.
 func signatory(data []byte, secretKey string) string {
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write(data)
@@ -20,15 +21,18 @@ func signatory(data []byte, secretKey string) string {
 	return hex.EncodeToString(sign)
 }
 
+// signedWriter structure for signature writer.
 type signedWriter struct {
 	http.ResponseWriter
 	writer *bytes.Buffer
 }
 
+// Write function to write data to internal buffer.
 func (sw *signedWriter) Write(d []byte) (int, error) {
 	return sw.writer.Write(d)
 }
 
+// SignData function to sign data.
 func SignData(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		key := os.Getenv("SECRET_KEY")

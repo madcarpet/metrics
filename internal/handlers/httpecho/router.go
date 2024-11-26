@@ -30,6 +30,7 @@ type pingHandelerSvc interface {
 	Ping(ctx context.Context) error
 }
 
+// SetupRouter function for configuring router and setting handlers and middlewares.
 func SetupRouter(
 	e *echo.Echo,
 	rootSvc rootHandlerSvc,
@@ -56,15 +57,15 @@ func SetupRouter(
 		mwList = []echo.MiddlewareFunc{middlewares.ReqRespWithLogging, middlewares.GzipCompression}
 	}
 
-	// Root handling
+	// Root handling.
 	e.GET("/", rootHandler.Handle, mwList...)
-	// JSON requests handling
+	// JSON requests handling.
 	e.POST("/value/", valueHandler.Handle, mwList...)
 	e.POST("/update/", updateHandler.Handle, mwList...)
 	e.POST("/updates/", updatesHandler.Handle, mwList...)
-	// Requests via URL handling
+	// Requests via URL handling.
 	e.GET("/value/:type/:name", valueURLHandler.Handle, middlewares.ReqRespWithLogging)
-	//Ping DB
+	// Ping DB.
 	e.GET("/ping", pingHandler.Handle, mwList...)
 	e.POST("/update/:type/", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
@@ -75,7 +76,7 @@ func SetupRouter(
 		return c.String(http.StatusNotFound, "Metric name not found")
 	}, middlewares.ReqRespWithLogging)
 	e.POST("/update/:type/:name/:value", updateURLHandler.Handle, mwList...)
-	// Any handling
+	// Any handling.
 	e.Any("/*", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")

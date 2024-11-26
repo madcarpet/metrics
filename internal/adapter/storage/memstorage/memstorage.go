@@ -8,12 +8,14 @@ import (
 	"github.com/madcarpet/metrics/internal/entity"
 )
 
+// MemStorage structure for in memory storage.
 type MemStorage struct {
 	metrics []entity.Metric
 	mutex   sync.Mutex
 	rmutex  sync.RWMutex
 }
 
+// NewMemStorage creates a new MemStorage.
 func NewMemStorage() *MemStorage {
 	return &MemStorage{
 		metrics: []entity.Metric{},
@@ -21,6 +23,7 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
+// GetByNameAndType retrive metric by name and type from storage.
 func (s *MemStorage) GetByNameAndType(_ context.Context, n string, t int64) (entity.Metric, error) {
 	s.rmutex.RLock()
 	defer s.rmutex.RUnlock()
@@ -32,6 +35,7 @@ func (s *MemStorage) GetByNameAndType(_ context.Context, n string, t int64) (ent
 	return entity.Metric{}, fmt.Errorf("metric %s not found", n)
 }
 
+// UpdateMetric updates metric in storage.
 func (s *MemStorage) UpdateMetric(_ context.Context, m entity.Metric) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -52,26 +56,32 @@ func (s *MemStorage) UpdateMetric(_ context.Context, m entity.Metric) error {
 	return nil
 }
 
+// GetAllMetrics retrieves all metrics from storage.
 func (s *MemStorage) GetAllMetrics(_ context.Context) ([]entity.Metric, error) {
 	return s.metrics, nil
 }
 
+// ExportToFile not supported, exists just because common interface.
 func (s *MemStorage) ExportToFile(_ context.Context) error {
 	return nil
 }
 
+// ImportFromFile not supported, exists just because common interface.
 func (s *MemStorage) ImportFromFile(_ context.Context) error {
 	return nil
 }
 
+// Close not supported, exists just because common interface.
 func (s *MemStorage) Close() error {
 	return nil
 }
 
+// IsConnected not supported, exists just because common interface.
 func (s *MemStorage) IsConnected(_ context.Context) error {
 	return fmt.Errorf("storage type without connection support")
 }
 
+// UpdateMetrics updates metrics (BUTCH)
 func (s *MemStorage) UpdateMetrics(ctx context.Context, mcs []entity.Metric) error {
 	for _, m := range mcs {
 		s.UpdateMetric(ctx, m)

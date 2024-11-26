@@ -12,16 +12,26 @@ import (
 	"github.com/madcarpet/metrics/internal/models"
 )
 
+// valueHandlerSvc interface with method to get metric data.
 type valueHandlerSvc interface {
 	GetMetric(ctx context.Context, n string, t int64) (entity.Metric, error)
 }
 
+// ValueHandler struct for handler, keeps value service.
 type ValueHandler struct {
 	valueSvc valueHandlerSvc
 }
 
+// NewValueHandler creates a new ValueHandler.
+func NewValueHandler(s valueHandlerSvc) *ValueHandler {
+	return &ValueHandler{
+		valueSvc: s,
+	}
+}
+
+// Handle handles http request.
 func (h *ValueHandler) Handle(c echo.Context) error {
-	//Var for decoding request JSON
+	// Var for decoding request JSON.
 	var reqData models.Metrics
 
 	appHeader := c.Request().Header.Get("Content-Type")
@@ -30,7 +40,7 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
 
-	//Reading body
+	// Reading body.
 	body, err := io.ReadAll(c.Request().Body)
 	defer c.Request().Body.Close()
 	if err != nil {
@@ -38,14 +48,14 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Server error")
 	}
 
-	//Decoding body data
+	// Decoding body data.
 	err = json.Unmarshal(body, &reqData)
 	if err != nil {
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request, could not unmarshal")
 	}
 
-	//Chcking id not emtpy
+	// Checking id not emtpy.
 	if reqData.ID == "" {
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusNotFound, "Metric name not found")
@@ -55,7 +65,7 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
 	}
-	//Dealing request depending on type
+	// Dealing request depending on type.
 	c.Response().Header().Set("Content-Type", constants.ContentTypeJSON)
 	switch reqData.MType {
 	case constants.GaugeType:
@@ -79,11 +89,5 @@ func (h *ValueHandler) Handle(c echo.Context) error {
 	default:
 		c.Response().Header().Set("Content-Type", constants.ContentTypePlain)
 		return c.String(http.StatusBadRequest, "Bad request")
-	}
-}
-
-func NewValueHandler(s valueHandlerSvc) *ValueHandler {
-	return &ValueHandler{
-		valueSvc: s,
 	}
 }
