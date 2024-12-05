@@ -34,17 +34,23 @@ func main() {
 	err = aplication.AppStart(context.Background())
 	if err != nil {
 		fmt.Printf("Server starting error: %v\n", err)
-		os.Exit(1)
+		return
 	}
 	// handle channels.
 	select {
 	case stop := <-sigChan:
 		fmt.Printf("Server stopping, recieved signal: %v\n", stop)
-		aplication.AppStop(context.Background())
+		err := aplication.AppStop(context.Background())
+		if err != nil {
+			fmt.Printf("server stopped wuth err %v", err)
+		}
 	case err := <-errChan:
 		if err != nil {
 			fmt.Printf("Server got error: %v\n", err)
-			os.Exit(1)
+			err := aplication.AppStop(context.Background())
+			if err != nil {
+				fmt.Printf("server stopped wuth err %v", err)
+			}
 		}
 
 	}

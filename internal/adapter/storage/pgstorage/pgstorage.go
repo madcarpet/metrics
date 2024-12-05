@@ -21,8 +21,8 @@ type PGStorage struct {
 }
 
 // NewPGStorage creates a new PGStorage.
-func NewPGStorage(Params string) (*PGStorage, error) {
-	db, err := sql.Open("pgx", Params)
+func NewPGStorage(params string) (*PGStorage, error) {
+	db, err := sql.Open("pgx", params)
 	if err != nil {
 		return nil, err
 	}

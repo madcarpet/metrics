@@ -43,24 +43,23 @@ func (a *App) AppStart(ctx context.Context) error {
 		}
 	}
 	if a.cfg.StoreInterval > 0 && a.cfg.FilePath != "" {
-		go func() error {
+		go func() {
 			for {
 				err := a.cfg.Storage.ExportToFile(ctx)
 				if err != nil {
 					logger.Log.Error("error exporting to file", zap.Error(err))
-					return err
+					return
 				}
 				time.Sleep(time.Duration(a.cfg.StoreInterval) * time.Second)
 			}
 		}()
 	}
-	go func() error {
+	go func() {
 		err := a.cfg.Router.Start(a.cfg.ServerAddress)
 		if err != nil {
 			logger.Log.Error("router start error", zap.Error(err))
-			return err
+
 		}
-		return nil
 	}()
 	return nil
 }

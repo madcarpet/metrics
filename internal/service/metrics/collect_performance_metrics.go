@@ -19,7 +19,6 @@ func NewPerCollectorSvc(r storage.Repository) *PerfMetricCollectorSvc {
 }
 
 func (pc *PerfMetricCollectorSvc) Collect(mn []string) error {
-	var collecdetMetrics []entity.Metric
 	m, err := mem.VirtualMemory()
 	if err != nil {
 		return err
@@ -34,8 +33,9 @@ func (pc *PerfMetricCollectorSvc) Collect(mn []string) error {
 		Name:  mn[1],
 		Value: float64(m.Free),
 	}
-	collecdetMetrics = append(collecdetMetrics, mTotalMetric, mFreeMetric)
 	cpus, err := cpu.Percent(5, true)
+	collecdetMetrics := make([]entity.Metric, 0, len(cpus)+2)
+	collecdetMetrics = append(collecdetMetrics, mTotalMetric, mFreeMetric)
 	if err != nil {
 		return err
 	}
