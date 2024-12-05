@@ -1,0 +1,62 @@
+PS C:\Users\Konstantin\Documents\Projects\GO\metrics\profiles> go tool pprof -top -diff_base .\base.pprof .\result.pprof
+File: main.exe
+Build ID: C:\Users\KONSTA~1\AppData\Local\Temp\go-build1478244383\b001\exe\main.exe2024-11-26 01:08:49.9713611 +0300 MSK
+Type: inuse_space
+Time: Nov 26, 2024 at 12:39am (MSK)
+Showing nodes accounting for -463.77kB, 18.07% of 2565.91kB total
+Dropped 18 nodes (cum <= 12.83kB)
+      flat  flat%   sum%        cum   cum%
+  565.76kB 22.05% 22.05%   565.76kB 22.05%  github.com/shirou/gopsutil/v4/cpu.perfInfo
+ -517.02kB 20.15%  1.90%  -517.02kB 20.15%  github.com/mattn/go-colorable.map.init.0
+ -512.56kB 19.98% 18.08%  -512.56kB 19.98%  github.com/madcarpet/metrics/internal/handlers/httpecho/handlers.(*RootHandler).Handle
+  512.14kB 19.96%  1.88%   512.14kB 19.96%  github.com/jackc/pgx/v5/pgtype.(*Map).RegisterDefaultPgType (inline)
+ -512.06kB 19.96% 18.07%  -512.06kB 19.96%  sync.(*poolChain).pushHead
+ -512.05kB 19.96% 38.03%  -512.05kB 19.96%  vendor/golang.org/x/crypto/cryptobyte.(*Builder).addLengthPrefixed
+  512.02kB 19.95% 18.07%   512.02kB 19.95%  crypto/ecdh.(*nistCurve[go.shape.*uint8]).NewPrivateKey
+         0     0% 18.07%   512.02kB 19.95%  crypto/ecdh.(*nistCurve[go.shape.*uint8]).GenerateKey
+         0     0% 18.07%  -512.05kB 19.96%  crypto/tls.(*Conn).writeHandshakeRecord
+         0     0% 18.07%  -512.05kB 19.96%  crypto/tls.(*clientHelloMsg).marshal
+         0     0% 18.07%  -512.05kB 19.96%  crypto/tls.(*clientHelloMsg).marshal.func12
+         0     0% 18.07%  -512.05kB 19.96%  crypto/tls.(*clientHelloMsg).marshal.func12.1
+         0     0% 18.07%   512.02kB 19.95%  crypto/tls.generateECDHEKey
+         0     0% 18.07%   512.14kB 19.96%  database/sql.(*DB).PingContext
+         0     0% 18.07%   512.14kB 19.96%  database/sql.(*DB).PingContext.func1
+         0     0% 18.07%   512.11kB 19.96%  database/sql.(*DB).conn
+         0     0% 18.07%   512.11kB 19.96%  database/sql.(*DB).retry
+         0     0% 18.07%   512.11kB 19.96%  github.com/jackc/pgx/v5.ConnectConfig
+         0     0% 18.07%   512.11kB 19.96%  github.com/jackc/pgx/v5.connect
+         0     0% 18.07%   512.14kB 19.96%  github.com/jackc/pgx/v5/pgtype.NewMap
+         0     0% 18.07%   512.14kB 19.96%  github.com/jackc/pgx/v5/pgtype.initDefaultMap
+         0     0% 18.07%   512.14kB 19.96%  github.com/jackc/pgx/v5/pgtype.registerDefaultPgTypeVariants[go.shape.struct { time.wall uint64; time.ext int64; time.loc *time.Location }]
+         0     0% 18.07%   512.11kB 19.96%  github.com/jackc/pgx/v5/stdlib.(*driverConnector).Connect
+         0     0% 18.07%  -512.56kB 19.98%  github.com/labstack/echo/v4.(*Echo).ServeHTTP
+         0     0% 18.07%  -512.56kB 19.98%  github.com/labstack/echo/v4.(*Echo).add.func1
+         0     0% 18.07%   512.02kB 19.95%  github.com/madcarpet/metrics/internal/adapter/storage/pgstorage.(*PGStorage).GetByNameAndType
+         0     0% 18.07%   512.02kB 19.95%  github.com/madcarpet/metrics/internal/adapter/storage/pgstorage.(*PGStorage).UpdateMetric
+         0     0% 18.07%   512.02kB 19.95%  github.com/madcarpet/metrics/internal/adapter/storage/pgstorage.(*PGStorage).UpdateMetric.func1
+         0     0% 18.07%   512.14kB 19.96%  github.com/madcarpet/metrics/internal/config.NewServerConfig
+         0     0% 18.07%   512.02kB 19.95%  github.com/madcarpet/metrics/internal/handlers/httpecho/handlers.(*UpdateHandler).Handle
+         0     0% 18.07%  -512.56kB 19.98%  github.com/madcarpet/metrics/internal/handlers/httpecho/middlewares.ReqRespWithLogging.func1
+         0     0% 18.07%   512.02kB 19.95%  github.com/madcarpet/metrics/internal/retry.retrier.Retry
+         0     0% 18.07%   512.02kB 19.95%  github.com/madcarpet/metrics/internal/service/metrics.(*UpdateMetricSvc).UpdateMetric
+         0     0% 18.07%  -517.02kB 20.15%  github.com/mattn/go-colorable.init
+         0     0% 18.07%   565.76kB 22.05%  github.com/shirou/gopsutil/v4/cpu.Times (inline)
+         0     0% 18.07%   565.76kB 22.05%  github.com/shirou/gopsutil/v4/cpu.TimesWithContext
+         0     0% 18.07%   565.76kB 22.05%  github.com/shirou/gopsutil/v4/cpu.init.0
+         0     0% 18.07%   565.76kB 22.05%  github.com/shirou/gopsutil/v4/cpu.perCPUTimes
+         0     0% 18.07%  -512.06kB 19.96%  go.uber.org/zap.(*Logger).Info
+         0     0% 18.07%  -512.06kB 19.96%  go.uber.org/zap/buffer.(*Buffer).Free (inline)
+         0     0% 18.07%  -512.06kB 19.96%  go.uber.org/zap/buffer.Pool.put (inline)
+         0     0% 18.07%  -512.06kB 19.96%  go.uber.org/zap/internal/pool.(*Pool[go.shape.*uint8]).Put (inline)
+         0     0% 18.07%  -512.06kB 19.96%  go.uber.org/zap/zapcore.(*CheckedEntry).Write
+         0     0% 18.07%  -512.06kB 19.96%  go.uber.org/zap/zapcore.(*ioCore).Write
+         0     0% 18.07%  -512.56kB 19.98%  net/http.(*conn).serve
+         0     0% 18.07%  -512.56kB 19.98%  net/http.serverHandler.ServeHTTP
+         0     0% 18.07%    48.74kB  1.90%  runtime.doInit (inline)
+         0     0% 18.07%    48.74kB  1.90%  runtime.doInit1
+         0     0% 18.07%    48.82kB  1.90%  runtime.main
+         0     0% 18.07%   512.14kB 19.96%  sync.(*Once).Do (inline)
+         0     0% 18.07%   512.14kB 19.96%  sync.(*Once).doSlow
+         0     0% 18.07%  -512.06kB 19.96%  sync.(*Pool).Put
+         0     0% 18.07%  -512.05kB 19.96%  vendor/golang.org/x/crypto/cryptobyte.(*Builder).AddUint16LengthPrefixed (inline)
+         0     0% 18.07%  -512.05kB 19.96%  vendor/golang.org/x/crypto/cryptobyte.(*Builder).callContinuation
