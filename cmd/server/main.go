@@ -12,7 +12,18 @@ import (
 	"github.com/madcarpet/metrics/internal/logger"
 )
 
+// Vars for ldflags.
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 func main() {
+	// Print version information.
+	fmt.Printf("Build version: %s\n", buildVersion)
+	fmt.Printf("Build date: %s\n", buildDate)
+	fmt.Printf("Build commit: %s\n", buildCommit)
 	// create channels for error and stopping.
 	sigChan := make(chan os.Signal, 1)
 	errChan := make(chan error)

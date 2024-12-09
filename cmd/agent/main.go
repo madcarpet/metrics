@@ -15,6 +15,13 @@ import (
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
+// Vars for ldflags.
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 // reporter - interface with a method `ReportMetrics` to report metrics to http server.
 type reporter interface {
 	ReportMetrics(ctx context.Context, metrics []entity.Metric) error
@@ -49,7 +56,10 @@ func worker(ctx context.Context, n int, rpt reporter, chIn <-chan []entity.Metri
 }
 
 func main() {
-
+	// Print version information.
+	fmt.Printf("Build version: %s\n", buildVersion)
+	fmt.Printf("Build date: %s\n", buildDate)
+	fmt.Printf("Build commit: %s\n", buildCommit)
 	doneChan := make(chan struct{})
 	// create channels for error and stopping.
 	sigChan := make(chan os.Signal, 1)
