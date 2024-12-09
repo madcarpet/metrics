@@ -1,3 +1,4 @@
+// Package httpecho - http handlers and router based on echo pkg.
 package httpecho
 
 import (

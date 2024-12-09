@@ -1,3 +1,4 @@
+// Package storage - storage subpackages and storage interfaces.
 package storage
 
 import (

@@ -1,3 +1,4 @@
+// Package http - external http interaction.
 package http
 
 import (
@@ -76,7 +77,7 @@ func (r *reporter) ReportMetrics(ctx context.Context, metrics []entity.Metric) e
 		if err != nil {
 			return fmt.Errorf("json body compression to buffer error: %s", err)
 		}
-		if err := gzBodyWriter.Close(); err != nil {
+		if err = gzBodyWriter.Close(); err != nil {
 			return fmt.Errorf("gzip writer closing error: %s", err)
 		}
 		url := fmt.Sprintf("http://%v/updates/", r.serverAddress)

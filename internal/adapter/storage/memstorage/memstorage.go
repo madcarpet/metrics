@@ -1,3 +1,4 @@
+// Package memstorage - memory based storage.
 package memstorage
 
 import (

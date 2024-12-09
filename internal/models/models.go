@@ -1,3 +1,4 @@
+// Package models - models for http interactions.
 package models
 
 type Metrics struct {

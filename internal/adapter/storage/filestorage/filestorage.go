@@ -1,3 +1,4 @@
+// Package filestorage - filesystem storage.
 package filestorage
 
 import (

@@ -1,3 +1,4 @@
+// Package app - app start stop controller.
 package app
 
 import (

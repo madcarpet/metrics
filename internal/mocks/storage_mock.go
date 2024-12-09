@@ -1,3 +1,4 @@
+// Package mocks - mock consists mock objects for testing.
 package mocks
 
 import (

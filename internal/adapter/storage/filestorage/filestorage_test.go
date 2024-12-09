@@ -43,8 +43,8 @@ func TestFileStorage(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, met := range updateMetrics {
-		metricImported, err := storage.GetByNameAndType(context.TODO(), met.Name, met.Type)
-		assert.Nil(t, err)
+		metricImported, getErr := storage.GetByNameAndType(context.TODO(), met.Name, met.Type)
+		assert.Nil(t, getErr)
 		assert.Equal(t, metricImported, met)
 	}
 	storageImport.file.Close()

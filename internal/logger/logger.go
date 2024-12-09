@@ -1,3 +1,4 @@
+// Package logger - package with singletone logger.
 package logger
 
 import (

@@ -22,7 +22,7 @@ func main() {
 	serverConfig, err := config.NewServerConfig()
 	if err != nil {
 		fmt.Printf("Server config preparing error: %v\n", err)
-		os.Exit(1)
+		return
 	}
 
 	logger.Initialize(serverConfig.LoggingLevel)

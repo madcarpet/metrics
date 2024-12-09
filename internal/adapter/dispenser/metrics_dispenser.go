@@ -1,3 +1,4 @@
+// Package dispenser - worker to dispence metrics.
 package dispenser
 
 import (

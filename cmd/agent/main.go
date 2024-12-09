@@ -49,6 +49,7 @@ func worker(ctx context.Context, n int, rpt reporter, chIn <-chan []entity.Metri
 }
 
 func main() {
+
 	doneChan := make(chan struct{})
 	// create channels for error and stopping.
 	sigChan := make(chan os.Signal, 1)
@@ -59,7 +60,7 @@ func main() {
 	err := parseFlags()
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 	ms := []string{
 		"Alloc",

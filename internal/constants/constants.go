@@ -1,3 +1,4 @@
+// Package constants - app constants.
 package constants
 
 const (

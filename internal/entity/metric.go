@@ -1,3 +1,4 @@
+// Package entity - contains app entity structures.
 package entity
 
 // Constans for differentiating between gauge and counter metric types.
@@ -6,7 +7,7 @@ const (
 	Counter
 )
 
-// Main structure for metric.
+// Metric - main structure for metric.
 type Metric struct {
 	Type  int64   `json:"type"`
 	Name  string  `json:"name"`

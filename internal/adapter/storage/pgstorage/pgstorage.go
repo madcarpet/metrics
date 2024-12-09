@@ -1,3 +1,4 @@
+// Package pgstorage - postgresql database storage.
 package pgstorage
 
 import (
@@ -165,7 +166,7 @@ func (s *PGStorage) ExportToFile(_ context.Context) error {
 	return nil
 }
 
-// ExportToFile not supported, exists just because common interface.
+// ImportFromFile not supported, exists just because common interface.
 func (s *PGStorage) ImportFromFile(_ context.Context) error {
 	return nil
 }

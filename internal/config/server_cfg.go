@@ -1,3 +1,4 @@
+// Package config - app configuration.
 package config
 
 import (

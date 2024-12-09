@@ -1,3 +1,4 @@
+// Package retry - connection timeout retrier.
 package retry
 
 import (
