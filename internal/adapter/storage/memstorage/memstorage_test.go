@@ -6,6 +6,7 @@ import (
 
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMemStorage(t *testing.T) {
@@ -75,5 +76,15 @@ func TestMemStorage(t *testing.T) {
 	summedCounterMetric, err := storage.GetByNameAndType(context.TODO(), "TestCounter4", entity.Counter)
 	assert.Nil(t, err)
 	assert.Equal(t, float64(8), summedCounterMetric.Value)
+
+	// Get all metrics.
+	allMetrics, err := storage.GetAllMetrics(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, 8, len(allMetrics))
+
+	// IsConnected test.
+	err = storage.IsConnected(context.Background())
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "storage type without connection support")
 
 }
