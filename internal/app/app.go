@@ -33,9 +33,9 @@ func (a *App) AppStart(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		httpecho.SetupRouter(a.cfg.Router, a.cfg.Root, a.cfg.Value, a.cfg.Update, a.cfg.Updates, a.cfg.Ping, true)
+		httpecho.SetupRouter(a.cfg.Router, a.cfg.Root, a.cfg.Value, a.cfg.Update, a.cfg.Updates, a.cfg.Ping, true, a.cfg.PKeyPath)
 	} else {
-		httpecho.SetupRouter(a.cfg.Router, a.cfg.Root, a.cfg.Value, a.cfg.Update, a.cfg.Updates, a.cfg.Ping, false)
+		httpecho.SetupRouter(a.cfg.Router, a.cfg.Root, a.cfg.Value, a.cfg.Update, a.cfg.Updates, a.cfg.Ping, false, a.cfg.PKeyPath)
 	}
 	if a.cfg.IsRestore {
 		err := a.cfg.Storage.ImportFromFile(ctx)

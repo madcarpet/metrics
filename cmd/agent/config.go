@@ -11,8 +11,8 @@ var serverAddress string
 var reportInterval int64
 var pollInterval int64
 var secretKey string
-
 var rateLimit int64
+var pKey string
 
 // parseFlags function parses command line flags and environment variables for configuration settings.
 func parseFlags() error {
@@ -22,6 +22,7 @@ func parseFlags() error {
 	flag.Int64Var(&pollInterval, "p", 2, "Interval to poll metrics")
 	flag.StringVar(&secretKey, "k", "", "Key for data signature")
 	flag.Int64Var(&rateLimit, "l", 1, "Concurrent send rate limit")
+	flag.StringVar(&pKey, "crypto-key", "", "Path to pub key for asymmetric encryption")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		return errors.New("entered unknown args")
@@ -49,6 +50,9 @@ func parseFlags() error {
 		if errRateLimit != nil {
 			return errors.New("bad RATE_LIMIT parameter")
 		}
+	}
+	if envPKey := os.Getenv("CRYPTO_KEY"); envPKey != "" {
+		pKey = envPKey
 	}
 	return nil
 }

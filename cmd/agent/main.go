@@ -12,6 +12,7 @@ import (
 	"github.com/madcarpet/metrics/internal/adapter/http"
 	"github.com/madcarpet/metrics/internal/adapter/storage/memstorage"
 	"github.com/madcarpet/metrics/internal/entity"
+	"github.com/madcarpet/metrics/internal/logger"
 	"github.com/madcarpet/metrics/internal/service/metrics"
 )
 
@@ -50,7 +51,18 @@ func metricCollecting(dch <-chan struct{}, pi int64, c collectService, ms []stri
 func worker(ctx context.Context, n int, rpt reporter, chIn <-chan []entity.Metric) {
 	fmt.Printf("worker #%d started\n", n)
 	for metric := range chIn {
-		rpt.ReportMetrics(ctx, metric)
+		batchSize := 3
+		for i := 0; i < len(metric); i += batchSize {
+			end := i + batchSize
+			if end > len(metric) {
+				end = len(metric)
+			}
+			batch := metric[i:end]
+			err := rpt.ReportMetrics(ctx, batch)
+			if err != nil {
+				fmt.Printf("worker report metrics error %s\n", err)
+			}
+		}
 	}
 	fmt.Printf("worker #%d finished\n", n)
 }
@@ -60,6 +72,8 @@ func main() {
 	fmt.Printf("Build version: %s\n", buildVersion)
 	fmt.Printf("Build date: %s\n", buildDate)
 	fmt.Printf("Build commit: %s\n", buildCommit)
+	logger.Initialize("info")
+	defer logger.Log.Sync()
 	doneChan := make(chan struct{})
 	// create channels for error and stopping.
 	sigChan := make(chan os.Signal, 1)
@@ -116,7 +130,7 @@ func main() {
 	} else {
 		ds = false
 	}
-	reporter := http.NewReporter(serverAddress, ds, secretKey)
+	reporter := http.NewReporter(serverAddress, ds, secretKey, pKey)
 	disp := dispenser.NewMetricDispenser(db, comCh)
 	go metricCollecting(doneChan, pollInterval, collectorSvc, ms)
 	go metricCollecting(doneChan, pollInterval, perfCollectorSvc, mn)

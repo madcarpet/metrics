@@ -40,6 +40,7 @@ func SetupRouter(
 	updatesSvc updatesHandlerSvc,
 	pingSvc pingHandelerSvc,
 	dataSign bool,
+	pKeyPath string,
 ) {
 	rootHandler := handlers.NewRootHandler(rootSvc)
 	valueHandler := handlers.NewValueHandler(valueSvc)
@@ -53,9 +54,9 @@ func SetupRouter(
 	var mwList []echo.MiddlewareFunc
 
 	if dataSign {
-		mwList = []echo.MiddlewareFunc{middlewares.ReqRespWithLogging, middlewares.GzipCompression, middlewares.SignData}
+		mwList = []echo.MiddlewareFunc{middlewares.ReqRespWithLogging, middlewares.GzipCompression, middlewares.SignData, middlewares.AsymetricDecrypt(pKeyPath)}
 	} else {
-		mwList = []echo.MiddlewareFunc{middlewares.ReqRespWithLogging, middlewares.GzipCompression}
+		mwList = []echo.MiddlewareFunc{middlewares.ReqRespWithLogging, middlewares.GzipCompression, middlewares.AsymetricDecrypt(pKeyPath)}
 	}
 
 	// Root handling.

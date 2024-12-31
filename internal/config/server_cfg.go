@@ -28,6 +28,7 @@ type ServerConfig struct {
 	Storage       storage.Repository
 	DBUrl         string
 	Key           string
+	PKeyPath      string
 	Services
 	Router *echo.Echo
 }
@@ -57,6 +58,8 @@ func NewServerConfig() (*ServerConfig, error) {
 	flag.StringVar(&config.DBUrl, "d", "", "DB Url or params in DSN format")
 	// secret key for signature.
 	flag.StringVar(&config.Key, "k", "", "Key for data signature")
+	// Path to private key.
+	flag.StringVar(&config.PKeyPath, "crypto-key", "", "Path to secret key file for asymmetric encryption")
 	flag.Parse()
 	if len(flag.Args()) > 0 {
 		return nil, errors.New("entered unknown args")
@@ -123,6 +126,10 @@ func NewServerConfig() (*ServerConfig, error) {
 
 	if keyEnv := os.Getenv("KEY"); keyEnv != "" {
 		config.Key = keyEnv
+	}
+
+	if pKeyPathEnv := os.Getenv("CRYPTO-KEY"); pKeyPathEnv != "" {
+		config.PKeyPath = pKeyPathEnv
 	}
 
 	config.Root = metrics.NewGetAllMetricsSvc(config.Storage)

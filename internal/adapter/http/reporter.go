@@ -13,6 +13,7 @@ import (
 	"net/http"
 
 	"github.com/madcarpet/metrics/internal/constants"
+	"github.com/madcarpet/metrics/internal/encryption/asymetric"
 	"github.com/madcarpet/metrics/internal/entity"
 	"github.com/madcarpet/metrics/internal/models"
 	"github.com/madcarpet/metrics/internal/retry"
@@ -31,11 +32,12 @@ type reporter struct {
 	serverAddress string
 	dataSign      bool
 	key           string
+	pkey          string
 }
 
 // NewReporter - metric reporter constructor.
-func NewReporter(sa string, ds bool, sk string) *reporter {
-	return &reporter{serverAddress: sa, dataSign: ds, key: sk}
+func NewReporter(sa string, ds bool, sk string, pk string) *reporter {
+	return &reporter{serverAddress: sa, dataSign: ds, key: sk, pkey: pk}
 }
 
 // ReportMetrics - function to report metrics to server by HTTP.
@@ -71,7 +73,13 @@ func (r *reporter) ReportMetrics(ctx context.Context, metrics []entity.Metric) e
 		if err != nil {
 			return fmt.Errorf("report encoding error: %s", err)
 		}
-
+		if r.pkey != "" {
+			encJsonBody, err := asymetric.EncryptWithPubKey(r.pkey, jsonBody)
+			if err != nil {
+				return fmt.Errorf("data encryption error: %s", err)
+			}
+			jsonBody = encJsonBody
+		}
 		gzBodyWriter := gzip.NewWriter(&body)
 		_, err = gzBodyWriter.Write(jsonBody)
 		if err != nil {
