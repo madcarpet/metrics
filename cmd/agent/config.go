@@ -1,0 +1,58 @@
+package main
+
+import (
+	"errors"
+	"flag"
+	"os"
+	"strconv"
+)
+
+var serverAddress string
+var reportInterval int64
+var pollInterval int64
+var secretKey string
+var rateLimit int64
+var pKey string
+
+// parseFlags function parses command line flags and environment variables for configuration settings.
+func parseFlags() error {
+	var errRprtInterval, errPollInterval, errRateLimit error
+	flag.StringVar(&serverAddress, "a", "localhost:8080", "Server address to connect to")
+	flag.Int64Var(&reportInterval, "r", 10, "Interval to report metrics")
+	flag.Int64Var(&pollInterval, "p", 2, "Interval to poll metrics")
+	flag.StringVar(&secretKey, "k", "", "Key for data signature")
+	flag.Int64Var(&rateLimit, "l", 1, "Concurrent send rate limit")
+	flag.StringVar(&pKey, "crypto-key", "", "Path to pub key for asymmetric encryption")
+	flag.Parse()
+	if len(flag.Args()) > 0 {
+		return errors.New("entered unknown args")
+	}
+	if envSrvAddr := os.Getenv("ADDRESS"); envSrvAddr != "" {
+		serverAddress = envSrvAddr
+	}
+	if envRprtInterval := os.Getenv("REPORT_INTERVAL"); envRprtInterval != "" {
+		reportInterval, errRprtInterval = strconv.ParseInt(envRprtInterval, 10, 64)
+		if errRprtInterval != nil {
+			return errors.New("bad REPORT_INTERVAL parameter")
+		}
+	}
+	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
+		pollInterval, errPollInterval = strconv.ParseInt(envPollInterval, 10, 64)
+		if errPollInterval != nil {
+			return errors.New("bad POLL_INTERVAL parameter")
+		}
+	}
+	if envSecretKey := os.Getenv("KEY"); envSecretKey != "" {
+		secretKey = envSecretKey
+	}
+	if envRateLimit := os.Getenv("RATE_LIMIT"); envRateLimit != "" {
+		rateLimit, errRateLimit = strconv.ParseInt(envRateLimit, 10, 64)
+		if errRateLimit != nil {
+			return errors.New("bad RATE_LIMIT parameter")
+		}
+	}
+	if envPKey := os.Getenv("CRYPTO_KEY"); envPKey != "" {
+		pKey = envPKey
+	}
+	return nil
+}
