@@ -79,9 +79,9 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	errChan := make(chan error)
 	// register system signals with channels.
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
-	err := parseFlags()
+	agentConfig, err := parseFlags()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -125,21 +125,21 @@ func main() {
 	collectorSvc := metrics.NewCollectorSvc(db)
 	perfCollectorSvc := metrics.NewPerCollectorSvc(db)
 	var ds bool
-	if secretKey != "" {
+	if agentConfig.SecretKey != "" {
 		ds = true
 	} else {
 		ds = false
 	}
-	reporter := http.NewReporter(serverAddress, ds, secretKey, pKey)
+	reporter := http.NewReporter(agentConfig.ServerAddress, ds, agentConfig.SecretKey, agentConfig.PKey)
 	disp := dispenser.NewMetricDispenser(db, comCh)
-	go metricCollecting(doneChan, pollInterval, collectorSvc, ms)
-	go metricCollecting(doneChan, pollInterval, perfCollectorSvc, mn)
-	for i := 1; i < int(rateLimit)+1; i++ {
+	go metricCollecting(doneChan, agentConfig.PollInterval, collectorSvc, ms)
+	go metricCollecting(doneChan, agentConfig.PollInterval, perfCollectorSvc, mn)
+	for i := 1; i < int(agentConfig.RateLimit)+1; i++ {
 		go worker(context.Background(), i, reporter, comCh)
 	}
-	go disp.Dispense(context.Background(), reportInterval)
+	go disp.Dispense(context.Background(), agentConfig.ReportInterval)
 
-	fmt.Printf("Agent started\nReporting to: %s\nPollInterval: %d\nReportInterval: %d\n", serverAddress, pollInterval, reportInterval)
+	fmt.Printf("Agent started\nReporting to: %s\nPollInterval: %d\nReportInterval: %d\n", agentConfig.ServerAddress, agentConfig.PollInterval, agentConfig.ReportInterval)
 	select {
 	case stop := <-sigChan:
 		fmt.Printf("Server stopping, recieved signal: %v\n", stop)

@@ -1,0 +1,5 @@
+{
+    "address": "localhost:9090", 
+    "store_interval": "250s", 
+    "database_dsn": "postgresql://test:test@10.89.0.74:5432/test"
+} 
