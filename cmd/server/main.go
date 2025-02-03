@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"syscall"
 
 	"github.com/madcarpet/metrics/internal/app"
 	"github.com/madcarpet/metrics/internal/config"
@@ -28,7 +27,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	errChan := make(chan error)
 	// register system signals with channels.
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	signal.Notify(sigChan, os.Interrupt)
 
 	serverConfig, err := config.NewServerConfig()
 	if err != nil {

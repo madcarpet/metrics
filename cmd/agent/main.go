@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/madcarpet/metrics/internal/adapter/dispenser"
@@ -79,7 +78,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	errChan := make(chan error)
 	// register system signals with channels.
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	signal.Notify(sigChan, os.Interrupt)
 
 	agentConfig, err := parseFlags()
 	if err != nil {
