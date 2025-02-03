@@ -1,42 +1,68 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/labstack/echo/v4"
-	"github.com/madcarpet/metrics/internal/handlers"
-	"github.com/madcarpet/metrics/internal/storage"
+	"github.com/madcarpet/metrics/internal/app"
+	"github.com/madcarpet/metrics/internal/config"
+	"github.com/madcarpet/metrics/internal/logger"
+)
+
+// Vars for ldflags.
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
 )
 
 func main() {
-	err := parseFlags()
+	// Print version information.
+	fmt.Printf("Build version: %s\n", buildVersion)
+	fmt.Printf("Build date: %s\n", buildDate)
+	fmt.Printf("Build commit: %s\n", buildCommit)
+	// create channels for error and stopping.
+	sigChan := make(chan os.Signal, 1)
+	errChan := make(chan error)
+	// register system signals with channels.
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+
+	serverConfig, err := config.NewServerConfig()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Printf("Server config preparing error: %v\n", err)
+		return
 	}
-	// initialize new storage
-	db := storage.NewMemStorage()
-	// initialize new echo instance
-	e := echo.New()
-	// initialize handler
-	h := handlers.NewHandler(db)
-	// routing
-	e.GET("/", h.Root)
-	e.GET("/value/:type/:name", h.Value)
-	e.POST("/update/:type/", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusNotFound, "Metric name not found")
-	})
-	e.POST("/update/:type/:value", func(c echo.Context) error {
-		c.Response().Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		return c.String(http.StatusNotFound, "Metric name not found")
-	})
-	e.POST("/update/:type/:name/:value", h.Update)
-	e.Any("/*", func(c echo.Context) error {
-		return c.String(http.StatusBadRequest, "Bad request")
-	})
-	// start server
-	e.Logger.Fatal(e.Start(serverAddress))
+
+	logger.Initialize(serverConfig.LoggingLevel)
+	defer logger.Log.Sync()
+
+	logger.Log.Info("Server starting")
+
+	aplication := app.NewApp(serverConfig)
+	err = aplication.AppStart(context.Background())
+	if err != nil {
+		fmt.Printf("Server starting error: %v\n", err)
+		return
+	}
+	// handle channels.
+	select {
+	case stop := <-sigChan:
+		fmt.Printf("Server stopping, recieved signal: %v\n", stop)
+		err := aplication.AppStop(context.Background())
+		if err != nil {
+			fmt.Printf("server stopped wuth err %v", err)
+		}
+	case err := <-errChan:
+		if err != nil {
+			fmt.Printf("Server got error: %v\n", err)
+			err := aplication.AppStop(context.Background())
+			if err != nil {
+				fmt.Printf("server stopped wuth err %v", err)
+			}
+		}
+
+	}
 }

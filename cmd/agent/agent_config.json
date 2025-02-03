@@ -1,0 +1,6 @@
+{
+    "address": "localhost:9999",
+    "report_interval": "20s", 
+    "poll_interval": "5s", 
+    "rate_limit": 1
+} 
